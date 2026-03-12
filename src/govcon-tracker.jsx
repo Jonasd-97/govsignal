@@ -222,7 +222,7 @@ export default function App() {
       const from = new Date(today); from.setDate(from.getDate() - 30);
       const fmt = d => `${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}/${d.getFullYear()}`;
       const params = new URLSearchParams({
-        api_key: apiKey, limit: 25,
+        api_key: apiKey, limit: 100,
         postedFrom: fmt(from), postedTo: fmt(today),
       });
       if (filters.naics) params.append("naicsCode", filters.naics);
