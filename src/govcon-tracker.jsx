@@ -1,4 +1,3 @@
-import React from 'react';
 import { useState, useEffect, useCallback } from "react";
 
 // ── CONSTANTS ──
@@ -209,14 +208,39 @@ export default function App() {
     setTimeout(() => setToast(""), 3000);
   };
 
+  const BACKEND_URL = import.meta.env.VITE_API_URL || "https://govsignal-backend-production.up.railway.app";
+
   const fetchOpportunities = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      // Try backend first (cached, unlimited scale)
+      const params = new URLSearchParams({ limit: 100 });
+      if (filters.naics) params.append("naicsCode", filters.naics);
+      if (filters.type) params.append("ptype", filters.type);
+      if (filters.keyword) params.append("keyword", filters.keyword);
+      const res = await fetch(`${BACKEND_URL}/api/opportunities?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        const opps = data.opportunities || data.opportunitiesData || data || [];
+        if (opps.length) {
+          setOpportunities(opps);
+          setUsingDemo(false);
+          showToast(`Loaded ${opps.length} opportunities`);
+          return;
+        }
+      }
+    } catch (_) {
+      // Backend unavailable, fall through to SAM.gov direct
+    }
+
+    // Fallback: call SAM.gov directly with user's API key
     if (!apiKey) {
       setUsingDemo(true);
       setOpportunities(DEMO_OPPS);
+      setLoading(false);
       return;
     }
-    setLoading(true);
-    setError("");
     try {
       const today = new Date();
       const from = new Date(today); from.setDate(from.getDate() - 30);
