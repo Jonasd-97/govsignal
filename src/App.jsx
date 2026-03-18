@@ -21,6 +21,7 @@ import {
   typeLabel,
 } from './utils/format';
 import './index.css';
+import AboutPage from './pages/AboutPage';
 
 const NAV_ITEMS = [
   ['dashboard', 'Dashboard'],
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   ['searches', 'Saved Searches'],
   ['performance', 'Past Performance'],
   ['proposal', 'Proposal Lab'],
+  ['about', 'About'],
   ['settings', 'Settings'],
   ['pricing', 'Pricing'],
 ];
@@ -327,8 +329,8 @@ function AuthScreen({ mode, setMode, authForm, setAuthForm, onAuth, resetToken, 
     <div className="auth-shell">
       <div className="auth-card card">
         <div className="brand-mark">GovSignal</div>
-        <h1>Federal contracts made easier to digest</h1>
-        <p className="muted">Built for small government contractors who need a faster bid/no-bid workflow.</p>
+        <h1>Federal contract intelligence made easier to act on</h1>
+        <p className="muted">Built for small government contractors who need a clearer bid/no-bid workflow.</p>
 
         {resetToken ? (
           <div className="form-grid">
@@ -426,14 +428,14 @@ function AuthScreen({ mode, setMode, authForm, setAuthForm, onAuth, resetToken, 
 
 function PublicHeader({ navigate, user, setAuthMode }) {
   return (
-    <header className="card" style={{ marginBottom: 24 }}>
+    <header className="card public-header" style={{ marginBottom: 24 }}>
       <div className="row spread align-center wrap">
         <div>
-          <div className="brand-mark">PipeGov</div>
-          <p className="tiny muted">Federal Contract Intelligence</p>
+          <div className="brand-mark">GovSignal</div>
+          <p className="tiny muted">Federal contract intelligence</p>
         </div>
 
-        <div className="row wrap">
+        <div className="row wrap align-center">
           <button type="button" className="ghost-btn" onClick={() => navigate('home')}>
             Home
           </button>
@@ -465,7 +467,7 @@ function PublicHeader({ navigate, user, setAuthMode }) {
                   navigate('auth');
                 }}
               >
-                Get started
+                Start free
               </button>
             </>
           )}
@@ -476,102 +478,233 @@ function PublicHeader({ navigate, user, setAuthMode }) {
 }
 
 function HomeView({ navigate, user, setAuthMode }) {
+  const goPrimary = () => {
+    if (user) navigate('dashboard');
+    else {
+      setAuthMode('register');
+      navigate('auth');
+    }
+  };
+
   return (
     <div className="app-shell public-shell">
       <main className="main-area">
         <PublicHeader navigate={navigate} user={user} setAuthMode={setAuthMode} />
 
-        <section className="page-grid">
-          <div className="card" style={{ padding: 32 }}>
-            <div
-              className="tiny muted"
-              style={{
-                color: '#f5a524',
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                marginBottom: 12,
-              }}
-            >
-              Federal Contract Intelligence
+        <section className="card hero-card">
+          <div className="hero-layout">
+            <div>
+              <div className="hero-kicker">Federal Contract Intelligence</div>
+              <h1 className="hero-title">Find profitable government contracts in seconds</h1>
+              <p className="hero-text">
+                GovSignal surfaces high-fit opportunities, simplifies qualification, and helps small contractors move faster with more confidence.
+              </p>
+
+              <div className="row wrap hero-actions">
+                <button type="button" className="primary-btn" onClick={goPrimary}>
+                  {user ? 'Open dashboard' : 'Start free'}
+                </button>
+                <button type="button" className="ghost-btn" onClick={() => navigate('about')}>
+                  See how it works
+                </button>
+              </div>
+
+              <div className="hero-proof">
+                <span className="hero-value-chip">Avg. profit signals</span>
+                <span>Built for beginner-friendly resellers</span>
+                <span>Fast bid / no-bid workflow</span>
+              </div>
             </div>
 
-            <h1 style={{ fontSize: 'clamp(38px, 6vw, 68px)', lineHeight: 1.02, marginBottom: 16 }}>
-              Win more government contracts with less guesswork
-            </h1>
+            <div className="hero-preview">
+              <div className="preview-toolbar">
+                <div className="preview-dot-group">
+                  <span className="preview-dot active" />
+                  <span className="preview-dot" />
+                  <span className="preview-dot" />
+                </div>
+                <Badge>Live opportunities</Badge>
+              </div>
 
-            <p className="muted" style={{ fontSize: 18, maxWidth: 740, lineHeight: 1.7 }}>
-              PipeGov helps companies find, evaluate, and manage federal opportunities with more clarity,
-              more speed, and better discipline.
-            </p>
+              <div className="preview-shell">
+                <div className="preview-metric-grid">
+                  <div className="preview-metric">
+                    <div className="tiny muted">Active matches</div>
+                    <strong>2,381</strong>
+                  </div>
+                  <div className="preview-metric">
+                    <div className="tiny muted">Avg. profit</div>
+                    <strong>34%</strong>
+                  </div>
+                  <div className="preview-metric">
+                    <div className="tiny muted">Easy wins</div>
+                    <strong>412</strong>
+                  </div>
+                </div>
 
-            <div className="row wrap top-gap-sm" style={{ marginTop: 24 }}>
-              <button
-                type="button"
-                className="primary-btn"
-                onClick={() => {
-                  if (user) navigate('dashboard');
-                  else {
-                    setAuthMode('register');
-                    navigate('auth');
-                  }
-                }}
-              >
-                {user ? 'Explore Platform' : 'Get Started'}
-              </button>
+                <div className="preview-opportunity">
+                  <div className="preview-row">
+                    <div>
+                      <strong>Office chairs • VA contract</strong>
+                      <div className="tiny muted">Veterans Affairs • Small business set-aside</div>
+                    </div>
+                    <ScorePill score={92} />
+                  </div>
 
-              <button type="button" className="ghost-btn" onClick={() => navigate('about')}>
-                Learn More
-              </button>
+                  <div className="feature-meta">
+                    <Badge tone="success">Est. profit $18,400</Badge>
+                    <Badge>Low complexity</Badge>
+                    <Badge>Reseller fit</Badge>
+                  </div>
+
+                  <div className="tiny muted">Source at $72/unit • Gov price $120/unit • 40% margin</div>
+                </div>
+
+                <div className="preview-table">
+                  <div className="table-row">
+                    <div>
+                      <strong>Tactical backpacks</strong>
+                      <div className="tiny muted">Department of Defense</div>
+                    </div>
+                    <Badge tone="success">$92k est. profit</Badge>
+                  </div>
+                  <div className="table-row">
+                    <div>
+                      <strong>Printer toner and supplies</strong>
+                      <div className="tiny muted">U.S. Forest Service</div>
+                    </div>
+                    <Badge>Easy</Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="home-stats-grid">
+          <div className="metric-card">
+            <h3>$12.4M+</h3>
+            <p className="muted">Contracts identified across high-fit supply categories.</p>
+          </div>
+          <div className="metric-card">
+            <h3>2,300+</h3>
+            <p className="muted">Active opportunities filtered for small contractor relevance.</p>
+          </div>
+          <div className="metric-card">
+            <h3>87%</h3>
+            <p className="muted">Avg. win-potential on curated best-fit opportunities.</p>
+          </div>
+        </section>
+
+        <section className="soft-section">
+          <div className="section-heading">
+            <h2>Featured opportunities</h2>
+            <p>Start with the best opportunities first, then drop into the full table for deeper filtering.</p>
+          </div>
+
+          <div className="featured-grid">
+            {[
+              {
+                title: 'Office seating package',
+                agency: 'Department of Veterans Affairs',
+                profit: '$18,400',
+                difficulty: 'Easy',
+                score: 92,
+              },
+              {
+                title: 'Tactical backpack replenishment',
+                agency: 'Department of Defense',
+                profit: '$92,000',
+                difficulty: 'Moderate',
+                score: 88,
+              },
+              {
+                title: 'Printer toner and supplies',
+                agency: 'U.S. Forest Service',
+                profit: '$11,200',
+                difficulty: 'Easy',
+                score: 84,
+              },
+            ].map((item) => (
+              <div className="feature-card" key={item.title}>
+                <div className="row spread align-start">
+                  <div>
+                    <h3>{item.title}</h3>
+                    <p className="muted tiny">{item.agency}</p>
+                  </div>
+                  <ScorePill score={item.score} />
+                </div>
+                <div className="feature-profit">{item.profit}</div>
+                <div className="feature-meta">
+                  <Badge tone="success">High margin</Badge>
+                  <Badge>{item.difficulty}</Badge>
+                </div>
+                <p className="muted">Pre-qualified for beginner-friendly resale workflows and faster sourcing.</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="table-grid">
+          <div className="filter-panel">
+            <div className="section-heading">
+              <h2>Filter what matters</h2>
+              <p>Focus on profitability, ease, and category fit before you waste time reading every notice.</p>
+            </div>
+            <div className="filter-stack">
+              <Field label="Industry"><input value="Office supplies" readOnly /></Field>
+              <Field label="Profit range"><input value="$5k – $50k" readOnly /></Field>
+              <Field label="Difficulty"><input value="Easy to Moderate" readOnly /></Field>
+            </div>
+            <div className="filter-chip-row">
+              <span className="chip">Small business set-aside</span>
+              <span className="chip">Reseller fit</span>
+              <span className="chip">Fast turnaround</span>
             </div>
           </div>
 
-          <div className="stats-grid">
-            <div className="card stat-card">
-              <div className="stat-value">🔎</div>
-              <div><strong>Find better opportunities</strong></div>
-              <div className="tiny muted">Cut through procurement noise and surface contracts worth pursuing.</div>
+          <div className="opportunities-panel">
+            <div className="section-heading">
+              <h2>Live opportunity view</h2>
+              <p>Featured cards on top. Clean, sortable contract table below.</p>
             </div>
 
-            <div className="card stat-card">
-              <div className="stat-value">⚡</div>
-              <div><strong>Qualify faster</strong></div>
-              <div className="tiny muted">Focus your team on the bids that actually fit your capabilities.</div>
-            </div>
-
-            <div className="card stat-card">
-              <div className="stat-value">📁</div>
-              <div><strong>Manage your pipeline</strong></div>
-              <div className="tiny muted">Track opportunities from discovery to pursuit in one place.</div>
-            </div>
-          </div>
-
-          <div className="card" style={{ padding: 28 }}>
-            <h2 style={{ marginBottom: 12 }}>Start building your pipeline today</h2>
-            <p className="muted" style={{ marginBottom: 20 }}>
-              Move faster on the right opportunities and pursue government work more strategically.
-            </p>
-
-            <div className="row wrap">
-              <button
-                type="button"
-                className="primary-btn"
-                onClick={() => {
-                  if (user) navigate('dashboard');
-                  else {
-                    setAuthMode('register');
-                    navigate('auth');
-                  }
-                }}
-              >
-                {user ? 'Open Dashboard' : 'Create Account'}
-              </button>
-
-              <button type="button" className="ghost-btn" onClick={() => navigate('about')}>
-                About PipeGov
-              </button>
+            <div className="opportunities-table">
+              <div className="opportunity-table-row header">
+                <span>Opportunity</span>
+                <span>Agency</span>
+                <span>Profit</span>
+                <span>Ease</span>
+                <span>Score</span>
+              </div>
+              {[
+                ['Office seating package', 'VA', '$18.4k', 'Easy', '92'],
+                ['Tactical backpacks', 'DoD', '$92k', 'Moderate', '88'],
+                ['Printer toner', 'USFS', '$11.2k', 'Easy', '84'],
+              ].map(([name, agency, profit, ease, score]) => (
+                <div className="opportunity-table-row" key={name}>
+                  <strong>{name}</strong>
+                  <span className="muted">{agency}</span>
+                  <span>{profit}</span>
+                  <Badge>{ease}</Badge>
+                  <ScorePill score={Number(score)} />
+                </div>
+              ))}
             </div>
           </div>
+        </section>
+
+        <section className="value-grid">
+          {[
+            ['Profit-first filtering', 'See what to sell and what the upside likely is before chasing a bid.'],
+            ['Beginner-friendly workflow', 'Designed for smaller firms that need clarity, not procurement overload.'],
+            ['Cleaner bid decisions', 'Use score, ease, and fit to decide where your time should actually go.'],
+          ].map(([title, text]) => (
+            <div className="value-card" key={title}>
+              <h3>{title}</h3>
+              <p className="muted" style={{ marginTop: 10 }}>{text}</p>
+            </div>
+          ))}
         </section>
       </main>
     </div>
@@ -584,98 +717,47 @@ function AboutView({ navigate, user, setAuthMode }) {
       <main className="main-area">
         <PublicHeader navigate={navigate} user={user} setAuthMode={setAuthMode} />
 
-        <section className="page-grid">
-          <div className="card" style={{ padding: 32 }}>
-            <div
-              className="tiny muted"
-              style={{
-                color: '#f5a524',
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                marginBottom: 12,
+        <section className="soft-section">
+          <div className="section-heading">
+            <div className="hero-kicker">About GovSignal</div>
+            <h1 style={{ fontSize: 'clamp(36px, 5vw, 60px)', lineHeight: 1.03 }}>A cleaner way to evaluate federal opportunities</h1>
+            <p>
+              GovSignal helps small and mid-sized contractors move from scattered contract searching to a more disciplined, profit-aware workflow.
+            </p>
+          </div>
+
+          <div className="value-grid">
+            <div className="value-card">
+              <h3>Find better opportunities</h3>
+              <p className="muted" style={{ marginTop: 10 }}>Surface contracts worth pursuing instead of sorting through raw procurement noise.</p>
+            </div>
+            <div className="value-card">
+              <h3>Qualify faster</h3>
+              <p className="muted" style={{ marginTop: 10 }}>See fit, risk, and likely complexity before your team spends hours digging in.</p>
+            </div>
+            <div className="value-card">
+              <h3>Manage your pipeline</h3>
+              <p className="muted" style={{ marginTop: 10 }}>Keep discovery, watchlists, and proposal planning inside one workflow.</p>
+            </div>
+          </div>
+
+          <div className="row wrap" style={{ marginTop: 20 }}>
+            <button
+              type="button"
+              className="primary-btn"
+              onClick={() => {
+                if (user) navigate('dashboard');
+                else {
+                  setAuthMode('register');
+                  navigate('auth');
+                }
               }}
             >
-              About PipeGov
-            </div>
-
-            <h1 style={{ fontSize: 'clamp(38px, 6vw, 64px)', lineHeight: 1.02, marginBottom: 16 }}>
-              Win more government contracts
-            </h1>
-
-            <p className="muted" style={{ fontSize: 18, maxWidth: 760, lineHeight: 1.7 }}>
-              PipeGov helps you find, evaluate, and win the right opportunities faster.
-            </p>
-
-            <div className="row wrap top-gap-sm" style={{ marginTop: 24 }}>
-              <button
-                type="button"
-                className="primary-btn"
-                onClick={() => {
-                  if (user) navigate('opportunities');
-                  else {
-                    setAuthMode('register');
-                    navigate('auth');
-                  }
-                }}
-              >
-                {user ? 'Browse Opportunities' : 'Get Started'}
-              </button>
-
-              <button
-                type="button"
-                className="ghost-btn"
-                onClick={() => {
-                  if (user) navigate('settings');
-                  else {
-                    setAuthMode('register');
-                    navigate('auth');
-                  }
-                }}
-              >
-                {user ? 'Complete Setup' : 'Create Account'}
-              </button>
-            </div>
-          </div>
-
-          <div className="stats-grid">
-            <div className="card stat-card">
-              <div className="stat-value">🔍</div>
-              <div><strong>Find the right opportunities</strong></div>
-              <div className="tiny muted">Surface high-value contracts instantly.</div>
-            </div>
-
-            <div className="card stat-card">
-              <div className="stat-value">📊</div>
-              <div><strong>Prioritize what matters</strong></div>
-              <div className="tiny muted">Score and rank bids with real data.</div>
-            </div>
-
-            <div className="card stat-card">
-              <div className="stat-value">📈</div>
-              <div><strong>Win more consistently</strong></div>
-              <div className="tiny muted">Track performance and improve outcomes.</div>
-            </div>
-          </div>
-
-          <div className="card" style={{ padding: 28 }}>
-            <h2 style={{ marginBottom: 12 }}>Built for teams serious about winning in GovCon.</h2>
-
-            <div className="row wrap" style={{ marginTop: 20 }}>
-              <button
-                type="button"
-                className="primary-btn"
-                onClick={() => {
-                  if (user) navigate('dashboard');
-                  else {
-                    setAuthMode('register');
-                    navigate('auth');
-                  }
-                }}
-              >
-                {user ? 'Explore Platform' : 'Start Now'}
-              </button>
-            </div>
+              {user ? 'Open dashboard' : 'Create account'}
+            </button>
+            <button type="button" className="ghost-btn" onClick={() => navigate('home')}>
+              Back home
+            </button>
           </div>
         </section>
       </main>
@@ -1271,7 +1353,7 @@ export default function App() {
   }
 
   if (view === 'about') {
-    return <AboutView navigate={navigate} user={user} setAuthMode={setAuthMode} />;
+  return <AboutPage />;
   }
 
   return (
