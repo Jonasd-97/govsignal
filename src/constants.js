@@ -19,6 +19,27 @@ export const NAICS_OPTIONS = [
   { code: '517110', label: '517110 — Wired Telecom Carriers' },
   { code: '621111', label: '621111 — Offices of Physicians' },
   { code: '811212', label: '811212 — Computer Repair & Maintenance' },
+  // Resellers
+  { code: '423430', label: '423430 — Computer & Peripheral Equipment Wholesale' },
+  { code: '423450', label: '423450 — Medical & Hospital Equipment Wholesale' },
+  { code: '423460', label: '423460 — Ophthalmic Goods Wholesale' },
+  { code: '423690', label: '423690 — Electronic Parts & Equipment Wholesale' },
+  { code: '423710', label: '423710 — Hardware Wholesale' },
+  { code: '423720', label: '423720 — Plumbing & Heating Equipment Wholesale' },
+  { code: '423840', label: '423840 — Industrial Supplies Wholesale' },
+  { code: '423860', label: '423860 — Transportation Equipment & Supplies Wholesale' },
+  { code: '424110', label: '424110 — Printing & Writing Paper Wholesale' },
+  { code: '424120', label: '424120 — Office Supplies & Stationery Wholesale' },
+  { code: '424130', label: '424130 — Industrial & Personal Service Paper Wholesale' },
+  { code: '424210', label: '424210 — Drugs & Druggists Sundries Wholesale' },
+  { code: '424310', label: '424310 — Piece Goods & Notions Wholesale' },
+  { code: '424340', label: '424340 — Footwear Wholesale' },
+  { code: '424410', label: '424410 — General Line Grocery Wholesale' },
+  { code: '424690', label: '424690 — Other Chemical & Allied Products Wholesale' },
+  { code: '424720', label: '424720 — Petroleum & Petroleum Products Wholesale' },
+  { code: '424910', label: '424910 — Farm Supplies Wholesale' },
+  { code: '424990', label: '424990 — Other Miscellaneous Nondurable Goods Wholesale' },
+  { code: '425120', label: '425120 — Wholesale Trade Agents & Brokers' },
 ];
 
 export const SET_ASIDE_OPTIONS = [
@@ -75,22 +96,39 @@ export const PLAN_CARDS = [
     code: 'PRO',
     name: 'Pro',
     price: '$49/mo',
-    features: ['Unlimited opportunity searches', 'Daily email digest', 'AI bid analysis', 'Proposal drafting and scoring'],
+    features: [
+      'Unlimited opportunity searches',
+      'AI bid analysis and win probability',
+      'Proposal drafting and scoring',
+      'Document drop and capability profiling',
+      'Daily email digest',
+      'Best for 1-3 person BD teams',
+    ],
   },
   {
     code: 'AGENCY',
     name: 'Agency',
-    price: '$149/mo',
-    features: ['Everything in Pro', 'Award history lookup', 'Agency-level workflows', 'Best fit for growing govcon teams'],
+    price: '$299/mo',
+    features: [
+      'Everything in Pro',
+      'Up to 5 team seats',
+      'Expanded digest and alert controls',
+      'Award history and competitor intel',
+      'Priority support',
+      'Best for established contractors scaling BD',
+    ],
   },
 ];
 
+/* ✅ UPDATED HERE */
 export const DEFAULT_FILTERS = {
   keyword: '',
   naicsCode: '',
   setAside: '',
   agency: '',
   type: '',
+  minValue: '',   // NEW
+  maxValue: '',   // NEW
   daysBack: 30,
   limit: 50,
 };

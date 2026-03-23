@@ -18,7 +18,28 @@ export function formatMoney(value) {
   if (!value && value !== 0) return 'Unknown';
   const num = Number(value);
   if (Number.isNaN(num)) return 'Unknown';
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(num);
+}
+
+export function formatValueRange(min, max, label) {
+  if (label) return label;
+
+  const hasMin = min !== null && min !== undefined && min !== '';
+  const hasMax = max !== null && max !== undefined && max !== '';
+
+  if (!hasMin && !hasMax) return 'Value not provided';
+
+  if (hasMin && hasMax) {
+    if (Number(min) === Number(max)) return formatMoney(min);
+    return `${formatMoney(min)} - ${formatMoney(max)}`;
+  }
+
+  if (hasMin) return `From ${formatMoney(min)}`;
+  return `Up to ${formatMoney(max)}`;
 }
 
 export function getDaysLeft(value) {
@@ -54,7 +75,13 @@ export function extractContractIntel(opportunity) {
     /\$([0-9,]{5,}(?:\.[0-9]+)?)/i,
   ];
 
-  let estimatedValue = opportunity.awardAmount || opportunity.baseAndAllOptionsValue || opportunity.contractValue || null;
+  let estimatedValue =
+    opportunity.valueMin ||
+    opportunity.awardAmount ||
+    opportunity.baseAndAllOptionsValue ||
+    opportunity.contractValue ||
+    null;
+
   let valueConfidence = estimatedValue ? 'high' : 'low';
 
   if (!estimatedValue) {
@@ -114,10 +141,14 @@ export function extractContractIntel(opportunity) {
 }
 
 export function normalizeOpportunity(item) {
-  const opportunity = item?.opportunity ? { ...item.opportunity, watchlistNotes: item.notes, savedAt: item.savedAt } : item;
+  const opportunity = item?.opportunity
+    ? { ...item.opportunity, watchlistNotes: item.notes, savedAt: item.savedAt }
+    : item;
+
   const score = opportunity.score ?? item.score ?? 0;
   const reasons = opportunity.reasons || item.reasons || [];
   const intel = extractContractIntel(opportunity);
+
   return {
     ...opportunity,
     score,

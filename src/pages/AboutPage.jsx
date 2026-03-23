@@ -9,26 +9,26 @@ export default function AboutPage() {
       <div style={styles.container}>
         <section style={styles.hero}>
           <div style={styles.heroCopy}>
-            <span style={styles.eyebrow}>About GovSignal</span>
+            <span style={styles.eyebrow}>About HelixGov</span>
 
             <h1 style={styles.title}>
-              Signal over noise.
-              <span style={styles.titleAccent}> Clarity that wins.</span>
+              Built for contractors that compete.
+              <span style={styles.titleAccent}> Powered by AI.</span>
             </h1>
 
             <p style={styles.subtitle}>
-              GovSignal is a contract intelligence platform built to simplify how
-              small and mid-sized businesses win government work. We cut through
-              the noise to surface opportunities with real profit potential,
-              clear entry points, and a higher likelihood of success.
+              HelixGov is the AI-powered GovCon platform built for contracting
+              firms who need to move fast without a dedicated BD team. We replace the manual
+              work of finding, qualifying, and pursuing federal contracts with tools that do
+              it automatically — at a fraction of what legacy platforms charge.
             </p>
 
             <div style={styles.buttonRow}>
-              <a href="/opportunities" style={styles.primaryButton}>
-                Browse Opportunities
+              <a href="/register" style={styles.primaryButton}>
+                Get Started Free
               </a>
-              <a href="/how-it-works" style={styles.secondaryButton}>
-                See How It Works
+              <a href="/" style={styles.secondaryButton}>
+                Back to Home
               </a>
             </div>
           </div>
@@ -36,7 +36,7 @@ export default function AboutPage() {
           <div style={styles.heroCard}>
             <div style={styles.previewHeader}>
               <span style={styles.previewDot} />
-              <span style={styles.previewLabel}>GovSignal Overview</span>
+              <span style={styles.previewLabel}>HelixGov Overview</span>
             </div>
 
             <div style={styles.previewMetricBlock}>
@@ -84,20 +84,21 @@ export default function AboutPage() {
         <section style={styles.problemSolution}>
           <div style={styles.problemBlock}>
             <span style={styles.problemLabel}>The Problem</span>
-            <h2 style={styles.blockTitle}>Thousands of listings. Endless noise.</h2>
+            <h2 style={styles.blockTitle}>Enterprise tools priced out of reach.</h2>
             <p style={styles.blockText}>
-              Most businesses waste time sorting through opportunities without
-              knowing what has real revenue potential, what is actually
-              winnable, or where to begin.
+              Deltek costs $1,250/mo. GovWin costs $500/mo. Neither was built for
+              contracting firms trying to win their next contract without a full
+              BD team behind them.
             </p>
           </div>
 
           <div style={styles.solutionBlock}>
             <span style={styles.solutionLabel}>The Solution</span>
-            <h2 style={styles.blockTitle}>Clear signals. Smarter decisions.</h2>
+            <h2 style={styles.blockTitle}>AI that replaces the BD team.</h2>
             <p style={styles.blockText}>
-              GovSignal helps you identify what to sell, how much you can make,
-              and whether an opportunity is worth your time — in seconds, not hours.
+              HelixGov automates bid qualification, proposal drafting, and proposal
+              scoring for $49/mo — giving your team the same intelligence edge
+              that large firms pay consultants $5–10k per engagement to produce.
             </p>
           </div>
         </section>
@@ -105,44 +106,47 @@ export default function AboutPage() {
         <section style={styles.section}>
           <div style={styles.sectionHeading}>
             <span style={styles.sectionEyebrow}>What we do</span>
-            <h2 style={styles.sectionTitle}>A simpler way to pursue government work</h2>
+            <h2 style={styles.sectionTitle}>AI tools built for contractors that compete</h2>
             <p style={styles.sectionSubtext}>
-              We turn a complex process into a clear, actionable system built for speed,
-              confidence, and better decision-making.
+              Everything your team needs to find, qualify, and pursue
+              federal contracts — without hiring a BD specialist or paying enterprise prices.
             </p>
           </div>
 
           <div style={styles.cardGrid}>
             <div style={styles.card}>
-              <div style={styles.iconWrap}>🎯</div>
-              <h3 style={styles.cardTitle}>Identify high-potential contracts</h3>
+              <div style={styles.iconWrap}>🤖</div>
+              <h3 style={styles.cardTitle}>AI bid/no-bid analysis</h3>
               <p style={styles.cardText}>
-                Surface opportunities that align with your capabilities and show real
-                revenue potential.
+                Get an instant AI verdict on any opportunity — win probability, key risks,
+                and specific next steps. No BD experience required.
               </p>
             </div>
 
             <div style={styles.card}>
               <div style={styles.iconWrap}>📊</div>
-              <h3 style={styles.cardTitle}>Estimate profit and difficulty</h3>
+              <h3 style={styles.cardTitle}>Smart opportunity scoring</h3>
               <p style={styles.cardText}>
-                Understand margin potential and complexity before investing time in a bid.
+                Every SAM.gov result is automatically scored for fit based on your NAICS code,
+                set-aside, and target agency. Focus on what actually matches.
               </p>
             </div>
 
             <div style={styles.card}>
-              <div style={styles.iconWrap}>🚀</div>
-              <h3 style={styles.cardTitle}>Highlight beginner-friendly entry points</h3>
+              <div style={styles.iconWrap}>📝</div>
+              <h3 style={styles.cardTitle}>AI proposal drafting</h3>
               <p style={styles.cardText}>
-                Find opportunities that are more accessible for businesses newer to the space.
+                Generate capability statements, executive summaries, and technical approaches
+                in seconds — tailored to your company profile and past performance.
               </p>
             </div>
 
             <div style={styles.card}>
-              <div style={styles.iconWrap}>💡</div>
-              <h3 style={styles.cardTitle}>Provide clear signals</h3>
+              <div style={styles.iconWrap}>🎯</div>
+              <h3 style={styles.cardTitle}>AI proposal scoring</h3>
               <p style={styles.cardText}>
-                Actionable insight that reduces guesswork and helps you move faster.
+                The only GovCon tool that grades your proposal (A–F) across 5 dimensions
+                before you submit. Know exactly what to fix before it counts.
               </p>
             </div>
           </div>
@@ -150,10 +154,11 @@ export default function AboutPage() {
 
         <section style={styles.missionSection}>
           <span style={styles.sectionEyebrow}>Our mission</span>
-          <h2 style={styles.sectionTitle}>Make government contracting more accessible, efficient, and profitable.</h2>
+          <h2 style={styles.sectionTitle}>Give every contractor the tools that used to be reserved for the big firms.</h2>
           <p style={styles.missionText}>
-            We believe businesses should not need years of experience or endless hours
-            of research just to find opportunities worth pursuing.
+            The GovCon market is $700B+ annually. Most of that money flows to large
+            firms with dedicated BD teams, expensive tools, and deep agency relationships.
+            We're building the platform that levels that playing field — for every firm ready to compete.
           </p>
         </section>
 
@@ -191,16 +196,16 @@ export default function AboutPage() {
             <span style={styles.sectionEyebrow}>Get started</span>
             <h2 style={styles.ctaTitle}>Turn complexity into clarity.</h2>
             <p style={styles.ctaText}>
-              Use GovSignal to focus on the opportunities that matter and move with more confidence.
+              Use HelixGov to focus on the opportunities that matter and move with more confidence.
             </p>
           </div>
 
           <div style={styles.ctaActions}>
-            <a href="/signup" style={styles.primaryButton}>
-              Get Started
+            <a href="/register" style={styles.primaryButton}>
+              Get Started Free
             </a>
-            <a href="/opportunities" style={styles.secondaryButton}>
-              Explore Opportunities
+            <a href="/dashboard" style={styles.secondaryButton}>
+              Explore the Dashboard
             </a>
           </div>
         </section>

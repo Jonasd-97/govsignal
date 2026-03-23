@@ -14,6 +14,7 @@ import {
   formatDate,
   formatDateTime,
   formatMoney,
+  formatValueRange,
   getDaysLeft,
   normalizeOpportunity,
   recommendationLabel,
@@ -22,6 +23,7 @@ import {
 } from './utils/format';
 import './index.css';
 import AboutPage from './pages/AboutPage';
+import HomePage from './pages/HomePage';
 
 const NAV_ITEMS = [
   ['dashboard', 'Dashboard'],
@@ -30,9 +32,7 @@ const NAV_ITEMS = [
   ['searches', 'Saved Searches'],
   ['performance', 'Past Performance'],
   ['proposal', 'Proposal Lab'],
-  ['about', 'About'],
   ['settings', 'Settings'],
-  ['pricing', 'Pricing'],
 ];
 
 const PUBLIC_VIEWS = new Set(['home', 'about', 'auth']);
@@ -51,7 +51,7 @@ const VIEW_LABELS = {
   pricing: 'Pricing',
 };
 
-const initialAuth = { email: '', password: '', name: '' };
+const initialAuth = { email: '', password: '', confirmPassword: '', name: '', companyName: '' };
 const initialPerfForm = {
   title: '',
   agency: '',
@@ -88,7 +88,10 @@ function ScorePill({ score }) {
 }
 
 function Badge({ children, tone = 'default' }) {
-  return <span className={`badge ${tone}`}>{children}</span>;
+  const inlineStyle = tone === 'info'
+    ? { backgroundColor: '#dbeafe', color: '#1d4ed8', border: '1px solid #bfdbfe' }
+    : {};
+  return <span className={`badge ${tone}`} style={inlineStyle}>{children}</span>;
 }
 
 function Field({ label, children, hint }) {
@@ -116,66 +119,125 @@ function SelectOptions({ options, includeBlank = false, blankLabel = 'Select one
 
 function OpportunityCard({ opportunity, onSelect, onToggleSave, saved }) {
   const daysLeft = getDaysLeft(opportunity.responseDeadline);
+  const score = opportunity.score || 0;
+  const accentColor = score >= 80 ? '#16a34a' : score >= 60 ? '#d97706' : '#dc2626';
+  const urgency = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
 
   return (
-    <button className="card opportunity-card" onClick={() => onSelect(opportunity)} type="button">
-      <div className="row spread top-gap-sm">
-        <div>
-          <div className="row top-gap-sm">
-            <ScorePill score={opportunity.score} />
-            <Badge
-              tone={
-                recommendationLabel(opportunity.score) === 'Pursue'
-                  ? 'success'
-                  : recommendationLabel(opportunity.score) === 'Consider'
-                    ? 'warning'
-                    : 'danger'
-              }
-            >
-              {opportunity.recommendation}
-            </Badge>
+    <button
+      className="card opportunity-card"
+      onClick={() => onSelect(opportunity)}
+      type="button"
+      style={{ padding: 0, overflow: 'hidden', textAlign: 'left', display: 'block', width: '100%' }}
+    >
+      {/* Left accent bar */}
+      <div style={{ display: 'flex', alignItems: 'stretch' }}>
+        <div style={{ width: '4px', backgroundColor: accentColor, flexShrink: 0, borderRadius: '4px 0 0 4px' }} />
+
+        <div style={{ flex: 1, padding: '1rem 1rem 0.75rem' }}>
+          {/* Top row: score + recommendation + save button */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{
+                fontWeight: 700, fontSize: '1rem', color: accentColor,
+                backgroundColor: `${accentColor}18`, border: `1.5px solid ${accentColor}40`,
+                borderRadius: '6px', padding: '0.1rem 0.5rem', minWidth: '2.2rem', textAlign: 'center'
+              }}>{score}</span>
+              <span style={{
+                fontSize: '0.72rem', fontWeight: 600, padding: '0.2rem 0.6rem',
+                borderRadius: '999px', backgroundColor: `${accentColor}18`,
+                color: accentColor, border: `1px solid ${accentColor}30`
+              }}>{opportunity.recommendation}</span>
+            </div>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onToggleSave(opportunity); }}
+              style={{
+                fontSize: '0.75rem', fontWeight: 600, padding: '0.25rem 0.75rem',
+                borderRadius: '999px', border: saved ? '1.5px solid #2563eb' : '1.5px solid #e2e8f0',
+                backgroundColor: saved ? '#eff6ff' : '#f8fafc',
+                color: saved ? '#2563eb' : '#64748b', cursor: 'pointer', whiteSpace: 'nowrap'
+              }}
+            >{saved ? 'Saved' : 'Save'}</button>
           </div>
 
-          <h3>{opportunity.title}</h3>
-          <p className="muted">
-            {opportunity.agency || 'Unknown agency'}
-            {opportunity.subAgency ? ` • ${opportunity.subAgency}` : ''}
-          </p>
+          {/* Title + agency */}
+          <div style={{ marginBottom: '0.5rem' }}>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a', lineHeight: 1.3, marginBottom: '0.15rem' }}>
+              {opportunity.title}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+              {opportunity.agency || 'Unknown agency'}{opportunity.subAgency ? ` \u00b7 ${opportunity.subAgency}` : ''}
+            </div>
+          </div>
+
+          {/* Meta row */}
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.7rem', color: '#94a3b8', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '0.1rem 0.4rem' }}>
+              {typeLabel(opportunity.opportunityType)}
+            </span>
+            {opportunity.naicsCode && (
+              <span style={{ fontSize: '0.7rem', color: '#94a3b8', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px', padding: '0.1rem 0.4rem' }}>
+                NAICS {opportunity.naicsCode}
+              </span>
+            )}
+            {opportunity.setAsideDescription && (
+              <span style={{ fontSize: '0.7rem', color: '#6366f1', backgroundColor: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: '4px', padding: '0.1rem 0.4rem' }}>
+                {opportunity.setAsideDescription}
+              </span>
+            )}
+          </div>
+
+          {/* Value + reason tags */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0f172a' }}>
+              Est. Value: {formatValueRange(opportunity.valueMin, opportunity.valueMax, opportunity.valueLabel)}
+            </span>
+            {(opportunity.reasons || []).filter(r => {
+              const lower = r.toLowerCase();
+              return !lower.includes('set-aside') &&
+                     !lower.includes('small business') &&
+                     !lower.includes('sdvosb') &&
+                     !lower.includes('wosb') &&
+                     !lower.includes('hubzone') &&
+                     !lower.includes('8(a)') &&
+                     !lower.includes('veteran-owned');
+            }).map((reason) => {
+              const r = reason.toLowerCase();
+              // Green — strong positive signals
+              const s = r.includes('naics') || r.includes('match') || r.includes('eligible') || r.includes('certified')
+                ? { bg: '#dcfce7', color: '#15803d', border: '#86efac' }
+                // Red — risk signals
+                : r.includes('risk') || r.includes('clearance') || r.includes('incumbent') || r.includes('complex')
+                  ? { bg: '#fee2e2', color: '#dc2626', border: '#fca5a5' }
+                // Yellow — time / urgency signals
+                : r.includes('lead time') || r.includes('deadline') || r.includes('urgent') || r.includes('days')
+                  ? { bg: '#fef9c3', color: '#a16207', border: '#fde047' }
+                // Blue — intel / early stage signals
+                : r.includes('sources sought') || r.includes('early intel') || r.includes('pre-solicitation') || r.includes('rfi')
+                  ? { bg: '#dbeafe', color: '#1d4ed8', border: '#93c5fd' }
+                // Purple — contract vehicle / award signals
+                : r.includes('bpa') || r.includes('idiq') || r.includes('gwac') || r.includes('vehicle') || r.includes('award')
+                  ? { bg: '#ede9fe', color: '#6d28d9', border: '#c4b5fd' }
+                // Grey — everything else
+                  : { bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' };
+              return (
+                <span key={reason} style={{
+                  fontSize: '0.7rem', fontWeight: 500, padding: '0.15rem 0.55rem',
+                  borderRadius: '999px', backgroundColor: s.bg, color: s.color, border: `1px solid ${s.border}`
+                }}>{reason}</span>
+              );
+            })}
+          </div>
+
+          {/* Footer: posted + deadline */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}>
+            <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Posted {formatDate(opportunity.postedDate)}</span>
+            <span style={{ fontSize: '0.7rem', fontWeight: 600, color: urgency ? '#dc2626' : '#64748b' }}>
+              {daysLeft === null ? 'No deadline' : daysLeft < 0 ? 'Closed' : `${daysLeft} day${daysLeft === 1 ? '' : 's'} left`}
+            </span>
+          </div>
         </div>
-
-        <button
-          type="button"
-          className={`ghost-btn ${saved ? 'active' : ''}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            onToggleSave(opportunity);
-          }}
-        >
-          {saved ? 'Saved' : 'Save'}
-        </button>
-      </div>
-
-      <div className="opportunity-meta">
-        <span>{typeLabel(opportunity.opportunityType)}</span>
-        <span>{opportunity.naicsCode || 'No NAICS'}</span>
-        <span>{opportunity.setAsideDescription || 'No set-aside listed'}</span>
-      </div>
-
-      <div className="reason-list">
-        {(opportunity.reasons || []).slice(0, 3).map((reason) => (
-          <Badge key={reason}>{reason}</Badge>
-        ))}
-      </div>
-
-      <div className="row spread muted tiny">
-        <span>Posted {formatDate(opportunity.postedDate)}</span>
-        <span>
-          {daysLeft === null
-            ? 'No deadline'
-            : daysLeft < 0
-              ? 'Closed'
-              : `${daysLeft} day${daysLeft === 1 ? '' : 's'} left`}
-        </span>
       </div>
     </button>
   );
@@ -183,154 +245,204 @@ function OpportunityCard({ opportunity, onSelect, onToggleSave, saved }) {
 
 function OpportunityDetail({ opportunity, saved, onToggleSave, onAnalyze, aiAnalysis }) {
   if (!opportunity) {
-    return <div className="card empty-state">Select an opportunity to review fit, risk, and next steps.</div>;
+    return (
+      <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px', color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
+        Select an opportunity to review fit, risk, and next steps.
+      </div>
+    );
   }
 
   const intel = opportunity.intel || {};
+  const score = opportunity.score || 0;
+  const accentColor = score >= 80 ? '#16a34a' : score >= 60 ? '#d97706' : '#dc2626';
+  const accentBg = score >= 80 ? '#dcfce7' : score >= 60 ? '#fef9c3' : '#fee2e2';
+  const accentBorder = score >= 80 ? '#86efac' : score >= 60 ? '#fde68a' : '#fca5a5';
+
+  const intelColor = (level) => {
+    if (!level) return { color: '#64748b', bg: '#f8fafc', border: '#e2e8f0' };
+    const l = level.toLowerCase();
+    if (l === 'low' || l === 'high suitability' || l === 'easy') return { color: '#15803d', bg: '#dcfce7', border: '#86efac' };
+    if (l === 'moderate' || l === 'medium suitability') return { color: '#a16207', bg: '#fef9c3', border: '#fde68a' };
+    if (l === 'high' || l === 'low suitability' || l === 'complex') return { color: '#dc2626', bg: '#fee2e2', border: '#fca5a5' };
+    return { color: '#64748b', bg: '#f8fafc', border: '#e2e8f0' };
+  };
 
   return (
     <div className="detail-panel">
-      <div className="card">
-        <div className="row spread align-start">
-          <div>
-            <div className="row top-gap-sm">
-              <ScorePill score={opportunity.score} />
-              <Badge
-                tone={
-                  recommendationLabel(opportunity.score) === 'Pursue'
-                    ? 'success'
-                    : recommendationLabel(opportunity.score) === 'Consider'
-                      ? 'warning'
-                      : 'danger'
-                }
-              >
-                {opportunity.recommendation}
-              </Badge>
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+
+        {/* Header */}
+        <div style={{ padding: '1.25rem 1.25rem 1rem', borderBottom: '0.5px solid var(--color-border-tertiary)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem' }}>
+                <span style={{ fontWeight: 500, fontSize: '1rem', color: accentColor, background: accentBg, border: `1.5px solid ${accentBorder}`, borderRadius: '6px', padding: '1px 10px' }}>{score}</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 500, padding: '2px 10px', borderRadius: '999px', background: accentBg, color: accentColor, border: `1px solid ${accentBorder}` }}>{opportunity.recommendation}</span>
+              </div>
+              <h2 style={{ margin: '0 0 0.25rem', fontSize: '1.1rem', lineHeight: 1.3 }}>{opportunity.title}</h2>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                {opportunity.agency || 'Unknown agency'}{opportunity.subAgency ? ` \u00b7 ${opportunity.subAgency}` : ''}
+              </p>
             </div>
-
-            <h2>{opportunity.title}</h2>
-            <p className="muted">
-              {opportunity.agency || 'Unknown agency'}
-              {opportunity.subAgency ? ` • ${opportunity.subAgency}` : ''}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className={`primary-btn ${saved ? 'secondary' : ''}`}
-            onClick={() => onToggleSave(opportunity)}
-          >
-            {saved ? 'Remove from watchlist' : 'Save to watchlist'}
-          </button>
-        </div>
-
-        <div className="detail-grid">
-          <div><strong>Notice ID</strong><span>{opportunity.noticeId}</span></div>
-          <div><strong>Type</strong><span>{typeLabel(opportunity.opportunityType)}</span></div>
-          <div><strong>NAICS</strong><span>{opportunity.naicsCode || '—'}</span></div>
-          <div><strong>Set-aside</strong><span>{opportunity.setAsideDescription || 'None listed'}</span></div>
-          <div><strong>Posted</strong><span>{formatDate(opportunity.postedDate)}</span></div>
-          <div><strong>Deadline</strong><span>{formatDateTime(opportunity.responseDeadline)}</span></div>
-        </div>
-
-        <div className="intel-grid">
-          <div className="card inset-card">
-            <div className="muted tiny">Estimated value</div>
-            <strong>{intel.estimatedValue ? formatMoney(intel.estimatedValue) : 'Unknown'}</strong>
-            <small>{intel.valueConfidence || 'low'} confidence</small>
-          </div>
-
-          <div className="card inset-card">
-            <div className="muted tiny">Complexity</div>
-            <strong>{intel.complexityLevel || 'Unknown'}</strong>
-            <small>{(intel.complexityFlags || []).join(', ') || 'No major complexity flags found'}</small>
-          </div>
-
-          <div className="card inset-card">
-            <div className="muted tiny">Incumbent risk</div>
-            <strong>{intel.incumbentRisk || 'Unknown'}</strong>
-            <small>{(intel.incumbentSignals || []).join(', ') || 'No strong incumbent signals detected'}</small>
-          </div>
-
-          <div className="card inset-card">
-            <div className="muted tiny">New firm suitability</div>
-            <strong>{intel.newFirmSuitability || 'Unknown'}</strong>
-            <small>{intel.clearanceRequired ? `Clearance: ${intel.clearanceRequired}` : 'No clearance signal detected'}</small>
+            <button
+              type="button"
+              onClick={() => onToggleSave(opportunity)}
+              style={{ fontSize: '0.8rem', fontWeight: 500, padding: '0.4rem 1rem', borderRadius: '999px', border: saved ? '1.5px solid #2563eb' : '1.5px solid var(--color-border-secondary)', background: saved ? '#eff6ff' : 'var(--color-background-secondary)', color: saved ? '#2563eb' : 'var(--color-text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+            >{saved ? 'Saved' : 'Save to watchlist'}</button>
           </div>
         </div>
 
-        <div className="section-block">
-          <div className="row spread align-center">
-            <h3>Bid analysis</h3>
-            <button type="button" className="primary-btn" onClick={() => onAnalyze(opportunity)}>
+        {/* Meta grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '1px solid #e2e8f0' }}>
+          {[
+            { label: 'Notice ID', value: opportunity.noticeId },
+            { label: 'Type', value: typeLabel(opportunity.opportunityType) },
+            { label: 'NAICS', value: opportunity.naicsCode || '--' },
+            { label: 'Set-aside', value: opportunity.setAsideDescription || 'None' },
+            { label: 'Posted', value: formatDate(opportunity.postedDate) },
+            { label: 'Deadline', value: formatDateTime(opportunity.responseDeadline) },
+          ].map(({ label, value }, i) => (
+            <div key={label} style={{
+              padding: '0.65rem 1rem',
+              borderRight: i % 3 !== 2 ? '1px solid #e2e8f0' : 'none',
+              borderBottom: i < 3 ? '1px solid #e2e8f0' : 'none',
+              background: 'var(--color-background-primary)',
+            }}>
+              <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginBottom: '3px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>{label}</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--color-text-primary)' }}>{value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Intel cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid #e2e8f0' }}>
+          {[
+            { label: 'Estimated value', value: formatValueRange(opportunity.valueMin, opportunity.valueMax, opportunity.valueLabel), sub: null, level: null, invert: false },
+            { label: 'Complexity', value: intel.complexityLevel || 'Unknown', sub: (intel.complexityFlags || []).join(', ') || 'No major flags', level: intel.complexityLevel, invert: false },
+            { label: 'Incumbent risk', value: intel.incumbentRisk || 'Unknown', sub: (intel.incumbentSignals || []).join(', ') || 'No signals detected', level: intel.incumbentRisk, invert: false },
+            { label: 'New firm suitability', value: intel.newFirmSuitability || 'Unknown', sub: intel.clearanceRequired ? `Clearance: ${intel.clearanceRequired}` : 'No clearance required', level: intel.newFirmSuitability, invert: true },
+          ].map(({ label, value, sub, level, invert }, i) => {
+            const getColor = (l, inv) => {
+              if (!l) return { color: '#64748b', bg: '#f8fafc', border: '#e2e8f0' };
+              const lower = l.toLowerCase();
+              const green = { color: '#15803d', bg: '#dcfce7', border: '#86efac' };
+              const red = { color: '#dc2626', bg: '#fee2e2', border: '#fca5a5' };
+              const amber = { color: '#a16207', bg: '#fef9c3', border: '#fde68a' };
+              const grey = { color: '#64748b', bg: '#f8fafc', border: '#e2e8f0' };
+              if (lower === 'moderate') return amber;
+              if (!inv) {
+                if (lower === 'low' || lower === 'easy') return green;
+                if (lower === 'high' || lower === 'complex') return red;
+              } else {
+                if (lower === 'high') return green;
+                if (lower === 'low') return red;
+              }
+              return grey;
+            };
+            const c = getColor(level, invert);
+            return (
+              <div key={label} style={{
+                padding: '0.85rem 1rem',
+                background: 'var(--color-background-primary)',
+                borderRight: i % 2 === 0 ? '1px solid #e2e8f0' : 'none',
+                borderBottom: i < 2 ? '1px solid #e2e8f0' : 'none',
+              }}>
+                <div style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500, marginBottom: '0.4rem' }}>{label}</div>
+                <div style={{ marginBottom: sub ? '0.3rem' : 0 }}>
+                  <span style={{
+                    fontSize: '0.82rem', fontWeight: 500, padding: level ? '2px 10px' : '0',
+                    borderRadius: '4px',
+                    background: level ? c.bg : 'transparent',
+                    color: level ? c.color : 'var(--color-text-primary)',
+                    border: level ? `1px solid ${c.border}` : 'none',
+                  }}>{value}</span>
+                </div>
+                {sub && <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.25rem' }}>{sub}</div>}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bid analysis */}
+        <div style={{ padding: '1rem 1.25rem', borderBottom: '0.5px solid var(--color-border-tertiary)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <h3 style={{ margin: 0, fontSize: '0.95rem' }}>Bid analysis</h3>
+            <button type="button" className="primary-btn" onClick={() => onAnalyze(opportunity)} style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}>
               Run AI analysis
             </button>
           </div>
 
           {aiAnalysis ? (
-            <div className="analysis-box">
-              <div className="row top-gap-sm wrap">
-                <Badge
-                  tone={
-                    aiAnalysis.verdict === 'Strong Fit'
-                      ? 'success'
-                      : aiAnalysis.verdict === 'Potential Fit'
-                        ? 'warning'
-                        : 'danger'
-                  }
-                >
-                  {aiAnalysis.verdict}
-                </Badge>
+            <div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                <Badge tone={aiAnalysis.verdict === 'Strong Fit' ? 'success' : aiAnalysis.verdict === 'Potential Fit' ? 'warning' : 'danger'}>{aiAnalysis.verdict}</Badge>
                 <Badge>{aiAnalysis.win_probability}% win probability</Badge>
               </div>
-
-              <p>{aiAnalysis.verdict_reason}</p>
-
-              <div className="split-two">
-                <div>
-                  <h4>Strengths</h4>
-                  <ul>{(aiAnalysis.strengths || []).map((item) => <li key={item}>{item}</li>)}</ul>
+              <p style={{ fontSize: '0.85rem', margin: '0 0 0.75rem', color: 'var(--color-text-primary)' }}>{aiAnalysis.verdict_reason}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderRadius: '8px', padding: '0.75rem' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 500, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.4rem' }}>Strengths</div>
+                  <ul style={{ margin: 0, paddingLeft: '1rem' }}>{(aiAnalysis.strengths || []).map((item) => <li key={item} style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>{item}</li>)}</ul>
                 </div>
-                <div>
-                  <h4>Risks</h4>
-                  <ul>{(aiAnalysis.risks || []).map((item) => <li key={item}>{item}</li>)}</ul>
+                <div style={{ background: '#fef2f2', border: '0.5px solid #fca5a5', borderRadius: '8px', padding: '0.75rem' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 500, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.4rem' }}>Risks</div>
+                  <ul style={{ margin: 0, paddingLeft: '1rem' }}>{(aiAnalysis.risks || []).map((item) => <li key={item} style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>{item}</li>)}</ul>
                 </div>
               </div>
-
-              <h4>Next steps</h4>
-              <ul>{(aiAnalysis.next_steps || []).map((item) => <li key={item}>{item}</li>)}</ul>
+              <div style={{ background: 'var(--color-background-secondary)', borderRadius: '8px', padding: '0.75rem' }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 500, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.4rem' }}>Next steps</div>
+                <ul style={{ margin: 0, paddingLeft: '1rem' }}>{(aiAnalysis.next_steps || []).map((item) => <li key={item} style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>{item}</li>)}</ul>
+              </div>
             </div>
           ) : (
-            <p className="muted">
-              Use AI analysis to turn this notice into a quick bid/no-bid recommendation for a small contractor.
+            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
+              Run AI analysis to get a bid/no-bid recommendation, win probability, strengths, risks, and next steps tailored to your company profile.
             </p>
           )}
         </div>
 
-        <div className="section-block">
-          <h3>Summary</h3>
-          <p className="description">{opportunity.description || 'No description available for this opportunity.'}</p>
-          {opportunity.uiLink ? (
-            <a href={opportunity.uiLink} target="_blank" rel="noreferrer" className="text-link">
-              Open original SAM.gov notice
+        {/* Summary */}
+        <div style={{ padding: '1rem 1.25rem' }}>
+          <h3 style={{ margin: '0 0 0.5rem', fontSize: '0.95rem' }}>Solicitation summary</h3>
+          <p style={{ margin: '0 0 0.75rem', fontSize: '0.85rem', lineHeight: 1.6, color: 'var(--color-text-primary)' }}>{opportunity.description || 'No description available.'}</p>
+          {opportunity.uiLink && (
+            <a href={opportunity.uiLink} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>
+              Open on SAM.gov
             </a>
-          ) : null}
+          )}
         </div>
+
       </div>
     </div>
   );
 }
 
-function AuthScreen({ mode, setMode, authForm, setAuthForm, onAuth, resetToken, onResetPassword, authBusy }) {
+function AuthScreen({ mode, setMode, authForm, setAuthForm, onAuth, resetToken, onResetPassword, authBusy, verificationSent, setVerificationSent, verificationEmail }) {
   const [forgotEmail, setForgotEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
+
+  if (verificationSent) {
+    return (
+      <div className="auth-shell">
+        <div className="auth-card card" style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}></div>
+          <div className="brand-mark">Helix<span style={{color:'#2563EB'}}>Gov</span></div>
+          <h1 style={{ fontSize: '1.3rem', marginTop: '0.75rem' }}>Check your inbox</h1>
+          <p className="muted">We sent a verification link to <strong>{verificationEmail}</strong>. Click it to activate your account and start your 14-day free trial.</p>
+          <p className="muted tiny" style={{ marginTop: '0.75rem' }}>Didn't get it? Check your spam folder or{' '}
+            <button className="text-btn" type="button" onClick={() => setVerificationSent(false)}>go back</button>.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-shell">
       <div className="auth-card card">
-        <div className="brand-mark">GovSignal</div>
-        <h1>Federal contract intelligence made easier to act on</h1>
-        <p className="muted">Built for small government contractors who need a clearer bid/no-bid workflow.</p>
+        <div className="brand-mark">Helix<span style={{color:'#2563EB'}}>Gov</span></div>
+        <h1>Find, qualify, and pursue federal contracts -- without a BD team</h1>
+        <p className="muted">Federal contract intelligence, built for teams that win. Start your 14-day free trial -- no credit card required.</p>
 
         {resetToken ? (
           <div className="form-grid">
@@ -376,13 +488,22 @@ function AuthScreen({ mode, setMode, authForm, setAuthForm, onAuth, resetToken, 
         ) : (
           <div className="form-grid">
             {mode === 'register' ? (
-              <Field label="Your name">
-                <input
-                  value={authForm.name}
-                  onChange={(e) => setAuthForm((prev) => ({ ...prev, name: e.target.value }))}
-                  placeholder="Jonas"
-                />
-              </Field>
+              <>
+                <Field label="Your name">
+                  <input
+                    value={authForm.name}
+                    onChange={(e) => setAuthForm((prev) => ({ ...prev, name: e.target.value }))}
+                    placeholder="Jonas"
+                  />
+                </Field>
+                <Field label="Company name (optional)">
+                  <input
+                    value={authForm.companyName}
+                    onChange={(e) => setAuthForm((prev) => ({ ...prev, companyName: e.target.value }))}
+                    placeholder="Bastion Supply Group"
+                  />
+                </Field>
+              </>
             ) : null}
 
             <Field label="Email address">
@@ -399,12 +520,28 @@ function AuthScreen({ mode, setMode, authForm, setAuthForm, onAuth, resetToken, 
                 type="password"
                 value={authForm.password}
                 onChange={(e) => setAuthForm((prev) => ({ ...prev, password: e.target.value }))}
-                placeholder="••••••••"
+                placeholder="Minimum 8 characters"
               />
             </Field>
 
-            <button className="primary-btn" type="button" onClick={() => onAuth(mode, authForm)} disabled={authBusy}>
-              {mode === 'login' ? 'Sign in' : 'Create account'}
+            {mode === 'register' ? (
+              <Field label="Confirm password">
+                <input
+                  type="password"
+                  value={authForm.confirmPassword}
+                  onChange={(e) => setAuthForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                  placeholder="Re-enter your password"
+                />
+              </Field>
+            ) : null}
+
+            <button
+              className="primary-btn"
+              type="button"
+              onClick={() => onAuth(mode, authForm)}
+              disabled={authBusy}
+            >
+              {mode === 'login' ? 'Sign in' : 'Create account -- start free trial'}
             </button>
 
             <div className="row spread wrap">
@@ -426,12 +563,145 @@ function AuthScreen({ mode, setMode, authForm, setAuthForm, onAuth, resetToken, 
   );
 }
 
+function OnboardingWizard({ user, onComplete, busy }) {
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState({
+    companyName: user?.companyName || '',
+    naicsCode: user?.naicsCode || '',
+    setAside: user?.setAside || '',
+    targetAgency: user?.targetAgency || '',
+    yearsInBusiness: '',
+  });
+
+  const totalSteps = 3;
+
+  const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const canProceed = () => {
+    if (step === 1) return form.companyName.trim().length > 0;
+    if (step === 2) return form.naicsCode.length > 0 && form.setAside.length > 0;
+    if (step === 3) return form.targetAgency.length > 0 && form.yearsInBusiness.length > 0;
+    return true;
+  };
+
+  const stepTitles = [
+    'Tell us about your company',
+    'What work do you pursue?',
+    'Who do you sell to?',
+  ];
+  const stepSubtitles = [
+    'This helps us personalize your opportunity feed from day one.',
+    'We\'ll use this to score and rank contracts that match your capabilities.',
+    'We\'ll prioritize opportunities from your target agencies.',
+  ];
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+      <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '2rem', width: '100%', maxWidth: '480px' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: '1.75rem' }}>
+          <div className="brand-mark" style={{ marginBottom: '1.25rem' }}>Helix<span style={{color:'#2563EB'}}>Gov</span></div>
+          {/* Progress bar */}
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem' }}>
+            {[1, 2, 3].map((s) => (
+              <div key={s} style={{ flex: 1, height: '4px', borderRadius: '999px', background: s <= step ? '#2563eb' : '#e2e8f0', transition: 'background 0.2s' }} />
+            ))}
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '0.4rem' }}>Step {step} of {totalSteps}</div>
+          <h2 style={{ margin: '0 0 0.25rem', fontSize: '1.2rem' }}>{stepTitles[step - 1]}</h2>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>{stepSubtitles[step - 1]}</p>
+        </div>
+
+        {/* Step 1 -- Company name */}
+        {step === 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <Field label="Company name">
+              <input
+                value={form.companyName}
+                onChange={(e) => update('companyName', e.target.value)}
+                placeholder="e.g. Bastion Supply Group"
+                autoFocus
+              />
+            </Field>
+          </div>
+        )}
+
+        {/* Step 2 -- NAICS + set-aside */}
+        {step === 2 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <Field label="Primary NAICS code">
+              <select value={form.naicsCode} onChange={(e) => update('naicsCode', e.target.value)}>
+                <SelectOptions options={NAICS_OPTIONS} includeBlank blankLabel="Select your primary NAICS" />
+              </select>
+            </Field>
+            <Field label="Set-aside certification">
+              <select value={form.setAside} onChange={(e) => update('setAside', e.target.value)}>
+                <SelectOptions options={SET_ASIDE_OPTIONS} includeBlank blankLabel="Select certification" />
+              </select>
+            </Field>
+          </div>
+        )}
+
+        {/* Step 3 -- Agency + years */}
+        {step === 3 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <Field label="Primary target agency">
+              <select value={form.targetAgency} onChange={(e) => update('targetAgency', e.target.value)}>
+                <SelectOptions options={AGENCY_OPTIONS} includeBlank blankLabel="Select target agency" />
+              </select>
+            </Field>
+            <Field label="Years in business">
+              <select value={form.yearsInBusiness} onChange={(e) => update('yearsInBusiness', e.target.value)}>
+                <option value="">Select range</option>
+                <option value="0-1">Less than 1 year</option>
+                <option value="1-3">1-3 years</option>
+                <option value="3-5">3-5 years</option>
+                <option value="5-10">5-10 years</option>
+                <option value="10+">10+ years</option>
+              </select>
+            </Field>
+          </div>
+        )}
+
+        {/* Navigation */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.75rem' }}>
+          {step > 1 ? (
+            <button type="button" className="ghost-btn" onClick={() => setStep((s) => s - 1)}>Back</button>
+          ) : <div />}
+
+          {step < totalSteps ? (
+            <button
+              type="button"
+              className="primary-btn"
+              onClick={() => setStep((s) => s + 1)}
+              disabled={!canProceed()}
+            >
+              Continue
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="primary-btn"
+              onClick={() => onComplete(form)}
+              disabled={!canProceed() || busy}
+            >
+              {busy ? 'Setting up...' : 'Go to my dashboard'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function PublicHeader({ navigate, user, setAuthMode }) {
   return (
     <header className="card public-header" style={{ marginBottom: 24 }}>
       <div className="row spread align-center wrap">
         <div>
-          <div className="brand-mark">GovSignal</div>
+          <div className="brand-mark">Helix<span style={{color:'#2563EB'}}>Gov</span></div>
           <p className="tiny muted">Federal contract intelligence</p>
         </div>
 
@@ -477,292 +747,8 @@ function PublicHeader({ navigate, user, setAuthMode }) {
   );
 }
 
-function HomeView({ navigate, user, setAuthMode }) {
-  const goPrimary = () => {
-    if (user) navigate('dashboard');
-    else {
-      setAuthMode('register');
-      navigate('auth');
-    }
-  };
-
-  return (
-    <div className="app-shell public-shell">
-      <main className="main-area">
-        <PublicHeader navigate={navigate} user={user} setAuthMode={setAuthMode} />
-
-        <section className="card hero-card">
-          <div className="hero-layout">
-            <div>
-              <div className="hero-kicker">Federal Contract Intelligence</div>
-              <h1 className="hero-title">Find profitable government contracts in seconds</h1>
-              <p className="hero-text">
-                GovSignal surfaces high-fit opportunities, simplifies qualification, and helps small contractors move faster with more confidence.
-              </p>
-
-              <div className="row wrap hero-actions">
-                <button type="button" className="primary-btn" onClick={goPrimary}>
-                  {user ? 'Open dashboard' : 'Start free'}
-                </button>
-                <button type="button" className="ghost-btn" onClick={() => navigate('about')}>
-                  See how it works
-                </button>
-              </div>
-
-              <div className="hero-proof">
-                <span className="hero-value-chip">Avg. profit signals</span>
-                <span>Built for beginner-friendly resellers</span>
-                <span>Fast bid / no-bid workflow</span>
-              </div>
-            </div>
-
-            <div className="hero-preview">
-              <div className="preview-toolbar">
-                <div className="preview-dot-group">
-                  <span className="preview-dot active" />
-                  <span className="preview-dot" />
-                  <span className="preview-dot" />
-                </div>
-                <Badge>Live opportunities</Badge>
-              </div>
-
-              <div className="preview-shell">
-                <div className="preview-metric-grid">
-                  <div className="preview-metric">
-                    <div className="tiny muted">Active matches</div>
-                    <strong>2,381</strong>
-                  </div>
-                  <div className="preview-metric">
-                    <div className="tiny muted">Avg. profit</div>
-                    <strong>34%</strong>
-                  </div>
-                  <div className="preview-metric">
-                    <div className="tiny muted">Easy wins</div>
-                    <strong>412</strong>
-                  </div>
-                </div>
-
-                <div className="preview-opportunity">
-                  <div className="preview-row">
-                    <div>
-                      <strong>Office chairs • VA contract</strong>
-                      <div className="tiny muted">Veterans Affairs • Small business set-aside</div>
-                    </div>
-                    <ScorePill score={92} />
-                  </div>
-
-                  <div className="feature-meta">
-                    <Badge tone="success">Est. profit $18,400</Badge>
-                    <Badge>Low complexity</Badge>
-                    <Badge>Reseller fit</Badge>
-                  </div>
-
-                  <div className="tiny muted">Source at $72/unit • Gov price $120/unit • 40% margin</div>
-                </div>
-
-                <div className="preview-table">
-                  <div className="table-row">
-                    <div>
-                      <strong>Tactical backpacks</strong>
-                      <div className="tiny muted">Department of Defense</div>
-                    </div>
-                    <Badge tone="success">$92k est. profit</Badge>
-                  </div>
-                  <div className="table-row">
-                    <div>
-                      <strong>Printer toner and supplies</strong>
-                      <div className="tiny muted">U.S. Forest Service</div>
-                    </div>
-                    <Badge>Easy</Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="home-stats-grid">
-          <div className="metric-card">
-            <h3>$12.4M+</h3>
-            <p className="muted">Contracts identified across high-fit supply categories.</p>
-          </div>
-          <div className="metric-card">
-            <h3>2,300+</h3>
-            <p className="muted">Active opportunities filtered for small contractor relevance.</p>
-          </div>
-          <div className="metric-card">
-            <h3>87%</h3>
-            <p className="muted">Avg. win-potential on curated best-fit opportunities.</p>
-          </div>
-        </section>
-
-        <section className="soft-section">
-          <div className="section-heading">
-            <h2>Featured opportunities</h2>
-            <p>Start with the best opportunities first, then drop into the full table for deeper filtering.</p>
-          </div>
-
-          <div className="featured-grid">
-            {[
-              {
-                title: 'Office seating package',
-                agency: 'Department of Veterans Affairs',
-                profit: '$18,400',
-                difficulty: 'Easy',
-                score: 92,
-              },
-              {
-                title: 'Tactical backpack replenishment',
-                agency: 'Department of Defense',
-                profit: '$92,000',
-                difficulty: 'Moderate',
-                score: 88,
-              },
-              {
-                title: 'Printer toner and supplies',
-                agency: 'U.S. Forest Service',
-                profit: '$11,200',
-                difficulty: 'Easy',
-                score: 84,
-              },
-            ].map((item) => (
-              <div className="feature-card" key={item.title}>
-                <div className="row spread align-start">
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p className="muted tiny">{item.agency}</p>
-                  </div>
-                  <ScorePill score={item.score} />
-                </div>
-                <div className="feature-profit">{item.profit}</div>
-                <div className="feature-meta">
-                  <Badge tone="success">High margin</Badge>
-                  <Badge>{item.difficulty}</Badge>
-                </div>
-                <p className="muted">Pre-qualified for beginner-friendly resale workflows and faster sourcing.</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="table-grid">
-          <div className="filter-panel">
-            <div className="section-heading">
-              <h2>Filter what matters</h2>
-              <p>Focus on profitability, ease, and category fit before you waste time reading every notice.</p>
-            </div>
-            <div className="filter-stack">
-              <Field label="Industry"><input value="Office supplies" readOnly /></Field>
-              <Field label="Profit range"><input value="$5k – $50k" readOnly /></Field>
-              <Field label="Difficulty"><input value="Easy to Moderate" readOnly /></Field>
-            </div>
-            <div className="filter-chip-row">
-              <span className="chip">Small business set-aside</span>
-              <span className="chip">Reseller fit</span>
-              <span className="chip">Fast turnaround</span>
-            </div>
-          </div>
-
-          <div className="opportunities-panel">
-            <div className="section-heading">
-              <h2>Live opportunity view</h2>
-              <p>Featured cards on top. Clean, sortable contract table below.</p>
-            </div>
-
-            <div className="opportunities-table">
-              <div className="opportunity-table-row header">
-                <span>Opportunity</span>
-                <span>Agency</span>
-                <span>Profit</span>
-                <span>Ease</span>
-                <span>Score</span>
-              </div>
-              {[
-                ['Office seating package', 'VA', '$18.4k', 'Easy', '92'],
-                ['Tactical backpacks', 'DoD', '$92k', 'Moderate', '88'],
-                ['Printer toner', 'USFS', '$11.2k', 'Easy', '84'],
-              ].map(([name, agency, profit, ease, score]) => (
-                <div className="opportunity-table-row" key={name}>
-                  <strong>{name}</strong>
-                  <span className="muted">{agency}</span>
-                  <span>{profit}</span>
-                  <Badge>{ease}</Badge>
-                  <ScorePill score={Number(score)} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="value-grid">
-          {[
-            ['Profit-first filtering', 'See what to sell and what the upside likely is before chasing a bid.'],
-            ['Beginner-friendly workflow', 'Designed for smaller firms that need clarity, not procurement overload.'],
-            ['Cleaner bid decisions', 'Use score, ease, and fit to decide where your time should actually go.'],
-          ].map(([title, text]) => (
-            <div className="value-card" key={title}>
-              <h3>{title}</h3>
-              <p className="muted" style={{ marginTop: 10 }}>{text}</p>
-            </div>
-          ))}
-        </section>
-      </main>
-    </div>
-  );
-}
-
-function AboutView({ navigate, user, setAuthMode }) {
-  return (
-    <div className="app-shell public-shell">
-      <main className="main-area">
-        <PublicHeader navigate={navigate} user={user} setAuthMode={setAuthMode} />
-
-        <section className="soft-section">
-          <div className="section-heading">
-            <div className="hero-kicker">About GovSignal</div>
-            <h1 style={{ fontSize: 'clamp(36px, 5vw, 60px)', lineHeight: 1.03 }}>A cleaner way to evaluate federal opportunities</h1>
-            <p>
-              GovSignal helps small and mid-sized contractors move from scattered contract searching to a more disciplined, profit-aware workflow.
-            </p>
-          </div>
-
-          <div className="value-grid">
-            <div className="value-card">
-              <h3>Find better opportunities</h3>
-              <p className="muted" style={{ marginTop: 10 }}>Surface contracts worth pursuing instead of sorting through raw procurement noise.</p>
-            </div>
-            <div className="value-card">
-              <h3>Qualify faster</h3>
-              <p className="muted" style={{ marginTop: 10 }}>See fit, risk, and likely complexity before your team spends hours digging in.</p>
-            </div>
-            <div className="value-card">
-              <h3>Manage your pipeline</h3>
-              <p className="muted" style={{ marginTop: 10 }}>Keep discovery, watchlists, and proposal planning inside one workflow.</p>
-            </div>
-          </div>
-
-          <div className="row wrap" style={{ marginTop: 20 }}>
-            <button
-              type="button"
-              className="primary-btn"
-              onClick={() => {
-                if (user) navigate('dashboard');
-                else {
-                  setAuthMode('register');
-                  navigate('auth');
-                }
-              }}
-            >
-              {user ? 'Open dashboard' : 'Create account'}
-            </button>
-            <button type="button" className="ghost-btn" onClick={() => navigate('home')}>
-              Back home
-            </button>
-          </div>
-        </section>
-      </main>
-    </div>
-  );
+function HomeView() {
+  return <HomePage />;
 }
 
 export default function App() {
@@ -776,6 +762,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [aiLimitReached, setAiLimitReached] = useState(false);
   const [filters, setFilters] = useLocalStorage('gs_filters', DEFAULT_FILTERS);
   const [opportunities, setOpportunities] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
@@ -795,6 +782,12 @@ export default function App() {
   const [proposalOutput, setProposalOutput] = useState('');
   const [proposalScore, setProposalScore] = useState(null);
   const [proposalDocument, setProposalDocument] = useState('');
+  const [perfExtracting, setPerfExtracting] = useState(false);
+  const [proposalDropping, setProposalDropping] = useState(false);
+  const [proposalDragOver, setProposalDragOver] = useState(false);
+  const [perfDragOver, setPerfDragOver] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
   const resetToken = new URLSearchParams(window.location.search).get('token');
   const upgraded = new URLSearchParams(window.location.search).get('upgraded');
 
@@ -878,25 +871,34 @@ export default function App() {
     if (!tokenStore.get()) return;
 
     try {
-      const [oppRes, watchRes, searchRes, perfRes, digestRes] = await Promise.all([
-        api(
-          `/api/opportunities?${new URLSearchParams({
-            keyword: filters.keyword,
-            naicsCode: filters.naicsCode,
-            setAside: filters.setAside,
-            agency: filters.agency,
-            type: filters.type,
-            daysBack: String(filters.daysBack || 30),
-            limit: String(filters.limit || 50),
-          }).toString()}`
-        ),
-        api('/api/watchlist'),
-        api('/api/searches'),
-        api('/api/performance'),
-        api('/api/digest/settings'),
-      ]);
+        const opportunityParams = new URLSearchParams();
 
-      const normalizedOpps = (oppRes.data || []).map(normalizeOpportunity);
+        if (filters.keyword) opportunityParams.set('keyword', filters.keyword);
+        if (filters.naicsCode) opportunityParams.set('naicsCode', filters.naicsCode);
+        if (filters.setAside) opportunityParams.set('setAside', filters.setAside);
+        if (filters.agency) opportunityParams.set('agency', filters.agency);
+        if (filters.type) opportunityParams.set('type', filters.type);
+
+        if (filters.minValue !== '' && filters.minValue !== null && filters.minValue !== undefined) {
+            opportunityParams.set('minValue', String(filters.minValue));
+        }
+
+        if (filters.maxValue !== '' && filters.maxValue !== null && filters.maxValue !== undefined) {
+          opportunityParams.set('maxValue', String(filters.maxValue));
+        }
+
+        opportunityParams.set('daysBack', String(filters.daysBack || 30));
+        opportunityParams.set('limit', String(filters.limit || 50));
+
+        const [oppRes, watchRes, searchRes, perfRes, digestRes] = await Promise.all([
+          api(`/api/opportunities?${opportunityParams.toString()}`),
+          api('/api/watchlist'),
+          api('/api/searches'),
+          api('/api/performance'),
+          api('/api/digest/settings'),
+        ]);
+      
+        const normalizedOpps = (oppRes.data || []).map(normalizeOpportunity);
 
       setOpportunities(normalizedOpps);
       setSelectedOpportunity(
@@ -956,6 +958,13 @@ export default function App() {
     setError('');
     setMessage('');
 
+    if (mode === 'register' && payload.password !== payload.confirmPassword) {
+      setError('Passwords do not match.');
+      clearFlash();
+      setBusy(false);
+      return;
+    }
+
     try {
       if (mode === 'forgot') {
         const result = await api('/api/auth/forgot-password', {
@@ -967,17 +976,24 @@ export default function App() {
         const path = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
         const result = await api(path, { method: 'POST', body: payload });
 
+        if (result.requiresVerification) {
+          setVerificationEmail(payload.email);
+          setVerificationSent(true);
+          setBusy(false);
+          return;
+        }
+
         tokenStore.set(result.token);
         setToken(result.token);
         setUser(result.user);
         setProfileDraft({ ...EMPTY_PROFILE, ...result.user, samApiKey: '' });
         setAuthForm(initialAuth);
         navigate('dashboard');
-        setMessage(mode === 'login' ? 'Welcome back.' : 'Account created successfully.');
+        setMessage(mode === 'login' ? 'Welcome back.' : 'Account created. Starting your free trial.');
       }
     } catch (err) {
       if (err.message === 'Email already registered') {
-        setError('Account already exists — try signing in.');
+        setError('Account already exists -- try signing in.');
       } else {
         setError(err.message);
       }
@@ -1000,6 +1016,32 @@ export default function App() {
       window.history.replaceState({}, '', '/login');
       setAuthMode('login');
       setView('auth');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+      clearFlash();
+    }
+  }
+
+  async function completeOnboarding(form) {
+    setBusy(true);
+    try {
+      const result = await api('/api/auth/profile', {
+        method: 'PATCH',
+        body: {
+          companyName: form.companyName,
+          naicsCode: form.naicsCode,
+          setAside: form.setAside,
+          targetAgency: form.targetAgency,
+          yearsInBusiness: form.yearsInBusiness,
+        },
+      });
+      const updated = result.user || result;
+      setUser((prev) => ({ ...prev, ...updated }));
+      setProfileDraft((prev) => ({ ...prev, ...updated, samApiKey: '' }));
+      navigate('dashboard');
+      setMessage('Profile set up. Welcome to HelixGov!');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1061,16 +1103,11 @@ export default function App() {
   }
 
   async function saveCurrentSearch() {
-    if (!searchName.trim()) {
-      setError('Name this search first.');
-      clearFlash();
-      return;
-    }
-
+    const name = searchName.trim() || `Search ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
     try {
       const created = await api('/api/searches', {
         method: 'POST',
-        body: { name: searchName.trim(), filters, alertOn: true },
+        body: { name, filters, alertOn: true },
       });
       setSavedSearches((prev) => [created, ...prev]);
       setSearchName('');
@@ -1180,6 +1217,7 @@ export default function App() {
       setAnalysisByNotice((prev) => ({ ...prev, [opportunity.noticeId]: result }));
       setMessage('AI analysis completed.');
     } catch (err) {
+      if (err.status === 429) { setAiLimitReached(true); return; }
       setError(err.message);
       if (err.status === 403) navigate('pricing');
     } finally {
@@ -1230,6 +1268,7 @@ export default function App() {
       setProposalScore(null);
       setMessage('Proposal content generated.');
     } catch (err) {
+      if (err.status === 429) { setAiLimitReached(true); return; }
       setError(err.message);
       if (err.status === 403) navigate('pricing');
     } finally {
@@ -1264,9 +1303,124 @@ export default function App() {
       setProposalScore(result);
       setMessage('Proposal scored.');
     } catch (err) {
+      if (err.status === 429) { setAiLimitReached(true); return; }
       setError(err.message);
       if (err.status === 403) navigate('pricing');
     } finally {
+      clearFlash();
+    }
+  }
+
+  async function extractPastPerformance(file) {
+    if (!file) return;
+    const allowed = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
+    if (!allowed.includes(file.type)) {
+      setError('Please drop a PDF or Word document.');
+      clearFlash();
+      return;
+    }
+
+    setPerfExtracting(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const result = await api('/api/ai/extract-performance', {
+        method: 'POST',
+        body: formData,
+        raw: true,
+      });
+
+      // Auto-fill the form with extracted fields
+      setPerfForm((prev) => ({
+        ...prev,
+        title: result.title || prev.title,
+        agency: result.agency || prev.agency,
+        contractValue: result.contractValue || prev.contractValue,
+        year: result.year || prev.year,
+        outcome: result.outcome || prev.outcome,
+        naicsCode: result.naicsCode || prev.naicsCode,
+        description: result.description || prev.description,
+      }));
+
+      // Update local user state if profile fields were auto-filled on backend
+      if (result.capabilityProfile) {
+        setUser((prev) => ({
+          ...prev,
+          ...(result.naicsCode && !prev.naicsCode ? { naicsCode: result.naicsCode } : {}),
+          ...(result.agency && !prev.targetAgency ? { targetAgency: result.agency } : {}),
+        }));
+      }
+
+      const docsCount = result.capabilityProfile?.docsAnalyzed || 1;
+      setMessage(`Profile updated from ${docsCount} document${docsCount === 1 ? '' : 's'} -- opportunity scoring is now personalized. Review the fields below and click Add record.`);
+    } catch (err) {
+      setError(err.message || 'Failed to extract document. Try filling in manually.');
+    } finally {
+      setPerfExtracting(false);
+      clearFlash();
+    }
+  }
+
+  async function analyzeDroppedProposal(file) {
+    if (!file) return;
+    const allowed = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
+    if (!allowed.includes(file.type)) {
+      setError('Please drop a PDF or Word document.');
+      clearFlash();
+      return;
+    }
+    if (!selectedOpportunity) {
+      setError('Select an opportunity first so the AI can compare against it.');
+      clearFlash();
+      return;
+    }
+
+    setProposalDropping(true);
+    setProposalScore(null);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Extract text from the document
+      const extracted = await api('/api/ai/extract-text', {
+        method: 'POST',
+        body: formData,
+        raw: true,
+      });
+
+      const docText = extracted.text || '';
+      setProposalDocument(docText);
+
+      // Immediately score it against the selected opportunity
+      const result = await api('/api/ai/score', {
+        method: 'POST',
+        body: {
+          docType: proposalType,
+          docTypeLabel: proposalType,
+          document: docText,
+          opportunity: {
+            title: selectedOpportunity.title,
+            agency: selectedOpportunity.agency,
+            naicsCode: selectedOpportunity.naicsCode,
+            setAside: selectedOpportunity.setAsideDescription,
+            description: selectedOpportunity.description,
+          },
+        },
+      });
+
+      setProposalScore(result);
+      setMessage('Document analyzed and scored. Review feedback on the right.');
+    } catch (err) {
+      if (err.status === 429) { setAiLimitReached(true); return; }
+      setError(err.message || 'Failed to analyze document.');
+      if (err.status === 403) navigate('pricing');
+    } finally {
+      setProposalDropping(false);
       clearFlash();
     }
   }
@@ -1296,17 +1450,15 @@ export default function App() {
     setToken(null);
     setUser(null);
 
-    // reset app state
     setOpportunities([]);
     setWatchlist([]);
     setSavedSearches([]);
     setPastPerformance([]);
     setSelectedOpportunity(null);
 
-    // navigate to public home
     setView('home');
     window.history.replaceState({}, '', '/');
-}
+  }
 
   const isPublicView = PUBLIC_VIEWS.has(view);
 
@@ -1321,6 +1473,9 @@ export default function App() {
         resetToken={resetToken}
         onResetPassword={handleResetPassword}
         authBusy={busy}
+        verificationSent={verificationSent}
+        setVerificationSent={setVerificationSent}
+        verificationEmail={verificationEmail}
       />
     );
   }
@@ -1330,7 +1485,7 @@ export default function App() {
   }
 
   if ((!token || !user) && view === 'about') {
-    return <AboutView navigate={navigate} user={user} setAuthMode={setAuthMode} />;
+    return <AboutPage />;
   }
 
   if ((!token || !user) && !isPublicView) {
@@ -1344,6 +1499,9 @@ export default function App() {
         resetToken={resetToken}
         onResetPassword={handleResetPassword}
         authBusy={busy}
+        verificationSent={verificationSent}
+        setVerificationSent={setVerificationSent}
+        verificationEmail={verificationEmail}
       />
     );
   }
@@ -1353,15 +1511,61 @@ export default function App() {
   }
 
   if (view === 'about') {
-  return <AboutPage />;
+    return <AboutPage />;
+  }
+
+  // Show onboarding wizard for new users who haven't set up their profile yet
+  if (token && user && !user.naicsCode) {
+    return (
+      <OnboardingWizard
+        user={user}
+        onComplete={completeOnboarding}
+        busy={busy}
+      />
+    );
   }
 
   return (
     <div className="app-shell">
+
+      {/* AI Usage Limit Modal */}
+      {aiLimitReached && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: '1rem',
+        }}>
+          <div className="card" style={{ maxWidth: '420px', width: '100%', textAlign: 'center', padding: '2rem' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>⚡</div>
+            <h2 style={{ marginBottom: '0.5rem' }}>Monthly AI limit reached</h2>
+            <p className="muted" style={{ marginBottom: '1.5rem' }}>
+              You've used all 50 AI analyses included in your Pro plan this month.
+              Upgrade to Agency for unlimited analyses, plus competitor intel and more.
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                className="primary-btn"
+                onClick={() => { setAiLimitReached(false); navigate('pricing'); }}
+              >
+                Upgrade to Agency
+              </button>
+              <button
+                type="button"
+                className="ghost-btn"
+                onClick={() => setAiLimitReached(false)}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <aside className={`sidebar ${mobileNavOpen ? 'open' : ''}`}>
         <div>
-          <div className="brand-mark">GovSignal</div>
-          <p className="tiny muted">GovCon workflow for small contractors</p>
+          <div className="brand-mark">Helix<span style={{color:'#2563EB'}}>Gov</span></div>
+          <p className="tiny muted">Federal contract intelligence, built for teams that win</p>
         </div>
 
         <nav className="nav-stack">
@@ -1388,6 +1592,16 @@ export default function App() {
               Sign out
             </button>
           </div>
+          {user.plan === 'FREE' ? (
+            <button
+              type="button"
+              className="primary-btn"
+              style={{ marginTop: '0.75rem', width: '100%' }}
+              onClick={() => navigate('pricing')}
+            >
+              Start free trial
+            </button>
+          ) : null}
         </div>
       </aside>
 
@@ -1404,7 +1618,7 @@ export default function App() {
 
             <div>
               <h1>{VIEW_LABELS[view] || 'Dashboard'}</h1>
-              <p className="muted">Focus on the contracts most worth your time.</p>
+              <p className="muted">Your AI-powered GovCon command center.</p>
             </div>
           </div>
 
@@ -1469,7 +1683,7 @@ export default function App() {
                     </div>
                   ))}
                   {!normalizedWatchlist.length ? (
-                    <div className="empty-state">Save opportunities to start your working pipeline.</div>
+                    <div className="empty-state">No opportunities saved yet. Find a good fit in Opportunities and hit Save to start your pipeline.</div>
                   ) : null}
                 </div>
               </div>
@@ -1525,6 +1739,40 @@ export default function App() {
                   </select>
                 </Field>
 
+                <Field label="Min value">
+                  <div style={{ position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: '0.65rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '0.9rem', pointerEvents: 'none' }}>$</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={filters.minValue ? Number(filters.minValue).toLocaleString() : ''}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/[^0-9]/g, '');
+                        setFilters((prev) => ({ ...prev, minValue: raw ? Number(raw) : '' }));
+                      }}
+                      placeholder="50,000"
+                      style={{ paddingLeft: '1.5rem' }}
+                    />
+                  </div>
+                </Field>
+
+                <Field label="Max value">
+                  <div style={{ position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: '0.65rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '0.9rem', pointerEvents: 'none' }}>$</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={filters.maxValue ? Number(filters.maxValue).toLocaleString() : ''}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/[^0-9]/g, '');
+                        setFilters((prev) => ({ ...prev, maxValue: raw ? Number(raw) : '' }));
+                      }}
+                      placeholder="500,000"
+                      style={{ paddingLeft: '1.5rem' }}
+                    />
+                  </div>
+                </Field>
+
                 <Field label="Days back">
                   <input
                     type="number"
@@ -1541,9 +1789,10 @@ export default function App() {
                   <input
                     value={searchName}
                     onChange={(e) => setSearchName(e.target.value)}
-                    placeholder="Name this search"
+                    placeholder="Name (optional)"
+                    style={{ width: '160px' }}
                   />
-                  <button type="button" className="primary-btn" onClick={saveCurrentSearch}>
+                  <button type="button" className="ghost-btn" onClick={saveCurrentSearch}>
                     Save search
                   </button>
                 </div>
@@ -1566,7 +1815,7 @@ export default function App() {
                   />
                 ))}
                 {!opportunities.length ? (
-                  <div className="card empty-state">No opportunities found with the current filters.</div>
+                  <div className="card empty-state">No opportunities matched your filters. Try broadening your NAICS code, removing the set-aside filter, or increasing the days back range.</div>
                 ) : null}
               </div>
 
@@ -1596,7 +1845,7 @@ export default function App() {
                         </div>
                         <h3>{item.title}</h3>
                         <p className="muted">
-                          {item.agency || 'Unknown agency'} • {formatDate(item.responseDeadline)}
+                          {item.agency || 'Unknown agency'} * {formatDate(item.responseDeadline)}
                         </p>
                         {item.watchlistNotes ? <p>{item.watchlistNotes}</p> : null}
                       </div>
@@ -1641,13 +1890,13 @@ export default function App() {
                     <div>
                       <strong>{item.name}</strong>
                       <div className="tiny muted">
-                        Created {formatDate(item.createdAt)} • Alerts {item.alertOn ? 'on' : 'off'}
+                        Created {formatDate(item.createdAt)} * Alerts {item.alertOn ? 'on' : 'off'}
                       </div>
                       <div className="tiny muted">
                         {Object.entries(item.filters || {})
                           .filter(([, value]) => value)
                           .map(([key, value]) => `${key}: ${value}`)
-                          .join(' • ') || 'No filters saved'}
+                          .join(' * ') || 'No filters saved'}
                       </div>
                     </div>
 
@@ -1687,6 +1936,49 @@ export default function App() {
             <div className="split-layout">
               <div className="card">
                 <h2>Add past performance</h2>
+
+                {/* AI Drop Zone */}
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setPerfDragOver(true); }}
+                  onDragLeave={() => setPerfDragOver(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setPerfDragOver(false);
+                    const file = e.dataTransfer.files[0];
+                    if (file) extractPastPerformance(file);
+                  }}
+                  style={{
+                    border: `2px dashed ${perfDragOver ? '#16a34a' : '#86efac'}`,
+                    borderRadius: '0.5rem',
+                    padding: '1.25rem',
+                    textAlign: 'center',
+                    marginBottom: '1.25rem',
+                    background: perfDragOver ? '#dcfce7' : '#f0fdf4',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.pdf,.doc,.docx';
+                    input.onchange = (e) => { if (e.target.files[0]) extractPastPerformance(e.target.files[0]); };
+                    input.click();
+                  }}
+                >
+                  {perfExtracting ? (
+                    <p className="muted" style={{ margin: 0 }}> Analyzing document and building your capability profile...</p>
+                  ) : (
+                    <>
+                      <p style={{ margin: 0, fontWeight: 600, fontSize: '0.875rem' }}>
+                        Drop a contract or award document here
+                      </p>
+                      <p className="muted tiny" style={{ margin: '0.25rem 0 0' }}>
+                        PDF or Word -- AI builds your capability profile to improve opportunity scoring, and auto-fills the form below
+                      </p>
+                    </>
+                  )}
+                </div>
+
                 <div className="form-grid two-column">
                   <Field label="Project title">
                     <input
@@ -1758,7 +2050,7 @@ export default function App() {
                       <div>
                         <strong>{item.title}</strong>
                         <div className="tiny muted">
-                          {item.agency || 'Unknown agency'} • {item.year || 'Unknown year'} • {item.outcome}
+                          {item.agency || 'Unknown agency'} * {item.year || 'Unknown year'} * {item.outcome}
                         </div>
                         <div className="tiny muted">
                           {item.contractValue ? formatMoney(item.contractValue) : 'No contract value listed'}
@@ -1835,12 +2127,74 @@ export default function App() {
                 </div>
 
                 <Field label="Generated or edited content">
-                  <textarea
-                    rows="18"
-                    value={proposalDocument}
-                    onChange={(e) => setProposalDocument(e.target.value)}
-                    placeholder="Generated proposal text will appear here."
-                  />
+                  {/* Drop zone -- replaces textarea when empty, shows textarea once content is loaded */}
+                  {!proposalDocument ? (
+                    <div
+                      onDragOver={(e) => { e.preventDefault(); setProposalDragOver(true); }}
+                      onDragLeave={() => setProposalDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setProposalDragOver(false);
+                        const file = e.dataTransfer.files[0];
+                        if (file) analyzeDroppedProposal(file);
+                      }}
+                      style={{
+                        border: `2px dashed ${proposalDragOver ? '#16a34a' : '#86efac'}`,
+                        borderRadius: '0.5rem',
+                        padding: '2.5rem 1.5rem',
+                        textAlign: 'center',
+                        background: proposalDragOver ? '#dcfce7' : '#f0fdf4',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                        minHeight: '200px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                      }}
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.pdf,.doc,.docx';
+                        input.onchange = (e) => { if (e.target.files[0]) analyzeDroppedProposal(e.target.files[0]); };
+                        input.click();
+                      }}
+                    >
+                      {proposalDropping ? (
+                        <p className="muted" style={{ margin: 0 }}> Analyzing your document...</p>
+                      ) : (
+                        <>
+                          <p style={{ margin: 0, fontWeight: 600, fontSize: '0.9rem' }}>
+                            Drop an existing proposal here to analyze it
+                          </p>
+                          <p className="muted tiny" style={{ margin: 0 }}>
+                            PDF or Word -- AI will score it and suggest improvements against the selected opportunity
+                          </p>
+                          <p className="muted tiny" style={{ margin: 0 }}>
+                            Or use <strong>Generate draft</strong> above to start from scratch
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ position: 'relative' }}>
+                      <textarea
+                        rows="18"
+                        value={proposalDocument}
+                        onChange={(e) => setProposalDocument(e.target.value)}
+                        placeholder="Generated proposal text will appear here."
+                      />
+                      <button
+                        type="button"
+                        className="ghost-btn"
+                        style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}
+                        onClick={() => { setProposalDocument(''); setProposalScore(null); }}
+                      >
+                        Clear and drop a new document
+                      </button>
+                    </div>
+                  )}
                 </Field>
               </div>
 
@@ -1941,7 +2295,7 @@ export default function App() {
                     </select>
                   </Field>
 
-                  <Field label="SAM.gov API key" hint="Optional. Lets you use your own SAM.gov quota.">
+                  <Field label="SAM.gov API key (Optional)">
                     <input
                       value={profileDraft.samApiKey || ''}
                       onChange={(e) => setProfileDraft((prev) => ({ ...prev, samApiKey: e.target.value }))}
@@ -2023,37 +2377,76 @@ export default function App() {
 
         {view === 'pricing' && (
           <section className="page-grid">
-            <div className="pricing-grid">
-              {PLAN_CARDS.map((plan) => (
-                <div className="card" key={plan.code}>
-                  <h2>{plan.name}</h2>
-                  <div className="price">{plan.price}</div>
-                  <ul>{plan.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
-                  <button
-                    type="button"
-                    className="primary-btn"
-                    onClick={() => startCheckout(plan.code)}
-                    disabled={user.plan === plan.code}
-                  >
-                    {user.plan === plan.code ? 'Current plan' : `Upgrade to ${plan.name}`}
-                  </button>
-                </div>
-              ))}
-
-              <div className="card">
-                <h2>Current plan</h2>
-                <div className="price">{user.plan}</div>
-                <p className="muted">
-                  Free users can still search, save opportunities, and manage pipeline basics.
-                  Paid plans unlock AI workflows and digest automation.
-                </p>
-                {user.plan !== 'FREE' ? (
-                  <button type="button" className="ghost-btn" onClick={openBillingPortal}>
-                    Manage subscription
-                  </button>
-                ) : null}
-              </div>
+            <div>
+              <h2 style={{ marginBottom: '0.25rem' }}>Choose your plan</h2>
+              <p className="muted">14-day free trial on all plans. No credit card required to start.</p>
             </div>
+
+            <div className="pricing-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+              {PLAN_CARDS.map((plan) => {
+                const isPro = plan.code === 'PRO';
+                const isCurrent = user.plan === plan.code;
+                return (
+                  <div key={plan.code} className="card" style={{
+                    position: 'relative',
+                    border: isPro ? '2px solid var(--blue)' : undefined,
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}>
+                    {isPro && (
+                      <div style={{
+                        position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)',
+                        background: 'var(--blue)', color: 'white', fontSize: '0.65rem', fontWeight: 700,
+                        padding: '3px 14px', borderRadius: '999px', letterSpacing: '0.06em', whiteSpace: 'nowrap',
+                      }}>MOST POPULAR</div>
+                    )}
+
+                    <div className="muted tiny" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.25rem' }}>
+                      {isPro ? 'For growing BD teams' : 'For contractors scaling up'}
+                    </div>
+                    <h2>{plan.name}</h2>
+                    <div className="price">{plan.price}</div>
+                    <p className="muted tiny" style={{ marginBottom: '1.25rem' }}>14-day free trial included</p>
+
+                    <button
+                      type="button"
+                      className="primary-btn"
+                      onClick={() => startCheckout(plan.code)}
+                      disabled={isCurrent}
+                      style={{ width: '100%', marginBottom: '1.5rem' }}
+                    >
+                      {isCurrent ? 'Current plan' : 'Start free trial'}
+                    </button>
+
+                    <div style={{ borderTop: '1px solid var(--line)', paddingTop: '1.1rem', flex: 1 }}>
+                      <p className="tiny muted" style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.75rem' }}>
+                        What's included
+                      </p>
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                        {plan.features.map((feature) => (
+                          <li key={feature} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '0.88rem', color: '#374151' }}>
+                            <span style={{ color: isPro ? 'var(--blue)' : 'var(--green)', fontWeight: 700, flexShrink: 0 }}>+</span>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="muted tiny" style={{ textAlign: 'center' }}>
+              Cancel anytime. No contracts. All AI features unlocked during your trial.
+            </p>
+
+            {user.plan !== 'FREE' && (
+              <div style={{ textAlign: 'center' }}>
+                <button type="button" className="ghost-btn" onClick={openBillingPortal}>
+                  Manage subscription
+                </button>
+              </div>
+            )}
           </section>
         )}
       </main>
