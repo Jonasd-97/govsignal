@@ -243,7 +243,7 @@ function OpportunityCard({ opportunity, onSelect, onToggleSave, saved }) {
   );
 }
 
-function OpportunityDetail({ opportunity, saved, onToggleSave, onAnalyze, aiAnalysis }) {
+function OpportunityDetail({ opportunity, saved, onToggleSave, onAnalyze, aiAnalysis, onSummarize, contractSummary, summarizeBusy }) {
   if (!opportunity) {
     return (
       <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px', color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
@@ -403,8 +403,27 @@ function OpportunityDetail({ opportunity, saved, onToggleSave, onAnalyze, aiAnal
 
         {/* Summary */}
         <div style={{ padding: '1rem 1.25rem' }}>
-          <h3 style={{ margin: '0 0 0.5rem', fontSize: '0.95rem' }}>Solicitation summary</h3>
-          <p style={{ margin: '0 0 0.75rem', fontSize: '0.85rem', lineHeight: 1.6, color: 'var(--color-text-primary)' }}>{opportunity.description || 'No description available.'}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <h3 style={{ margin: 0, fontSize: '0.95rem' }}>Solicitation summary</h3>
+            {!contractSummary && opportunity.description && (
+              <button
+                type="button"
+                className="primary-btn"
+                style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem' }}
+                onClick={onSummarize}
+                disabled={summarizeBusy}
+              >
+                {summarizeBusy ? 'Summarizing...' : '✦ AI Summary'}
+              </button>
+            )}
+          </div>
+          {contractSummary ? (
+            <p style={{ margin: '0 0 0.75rem', fontSize: '0.85rem', lineHeight: 1.6, color: 'var(--color-text-primary)' }}>{contractSummary}</p>
+          ) : (
+            <p style={{ margin: '0 0 0.75rem', fontSize: '0.85rem', lineHeight: 1.6, color: 'var(--color-text-secondary)' }}>
+              {opportunity.description ? 'Click "AI Summary" for a plain-English breakdown of this contract.' : 'No description available.'}
+            </p>
+          )}
           {opportunity.uiLink && (
             <a href={opportunity.uiLink} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>
               Open on SAM.gov
@@ -778,6 +797,8 @@ export default function App() {
   const [perfForm, setPerfForm] = useState(initialPerfForm);
   const [searchName, setSearchName] = useState('');
   const [analysisByNotice, setAnalysisByNotice] = useState({});
+  const [summaryByNotice, setSummaryByNotice] = useState({});
+  const [summarizeBusy, setSummarizeBusy] = useState(false);
   const [proposalType, setProposalType] = useState('capability');
   const [proposalOutput, setProposalOutput] = useState('');
   const [proposalScore, setProposalScore] = useState(null);
@@ -1225,7 +1246,29 @@ export default function App() {
     }
   }
 
-  async function generateProposal() {
+  async function summarizeContract() {
+    if (!selectedOpportunity?.description) return;
+    setSummarizeBusy(true);
+    try {
+      const result = await api('/api/ai/summarize', {
+        method: 'POST',
+        body: {
+          noticeId: selectedOpportunity.noticeId,
+          title: selectedOpportunity.title,
+          agency: selectedOpportunity.agency,
+          description: selectedOpportunity.description,
+        },
+      });
+      setSummaryByNotice((prev) => ({ ...prev, [selectedOpportunity.noticeId]: result.summary }));
+    } catch (err) {
+      if (err.status === 429) { setAiLimitReached(true); return; }
+      setError(err.message);
+      if (err.status === 403) navigate('pricing');
+    } finally {
+      setSummarizeBusy(false);
+      clearFlash();
+    }
+  }
     if (!selectedOpportunity) {
       setError('Select an opportunity first.');
       clearFlash();
@@ -1825,6 +1868,9 @@ export default function App() {
                 onToggleSave={toggleWatchlist}
                 onAnalyze={runAnalysis}
                 aiAnalysis={currentAnalysis}
+                onSummarize={summarizeContract}
+                contractSummary={summaryByNotice[selectedOpportunity?.noticeId]}
+                summarizeBusy={summarizeBusy}
               />
             </div>
           </section>
