@@ -24,6 +24,7 @@ import {
 import './index.css';
 import AboutPage from './pages/AboutPage';
 import HomePage from './pages/HomePage';
+import ContractingEdge from './pages/ContractingEdge';
 
 const NAV_ITEMS = [
   ['dashboard', 'Dashboard'],
@@ -67,6 +68,7 @@ function parseInitialView() {
 
   if (!path) return 'home';
   if (path === 'about') return 'about';
+  if (path === 'contracting-edge') return 'contracting-edge';
   if (path === 'login' || path === 'register' || path === 'auth' || path === 'reset-password') return 'auth';
   if (path === 'verify-success') return 'verify-success';
   if (path === 'verify-error') return 'verify-error';
@@ -1668,6 +1670,10 @@ export default function App() {
 
   if (view === 'about') {
     return <AboutPage />;
+  }
+
+  if (view === 'contracting-edge') {
+    return <ContractingEdge />;
   }
 
   // Show onboarding wizard for new users who haven't set up their profile yet

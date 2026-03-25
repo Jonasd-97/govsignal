@@ -58,6 +58,7 @@ export default function HomePage() {
           <div style={styles.brand}>Helix<span style={{color:'#2563EB'}}>Gov</span></div>
           <nav style={styles.navLinks}>
             <a href="/about" style={styles.navLink}>About</a>
+            <a href="/contracting-edge" style={styles.navLink}>The Contracting Edge</a>
             <a href="/login" style={styles.navLink}>Sign In</a>
             <a href="/register" style={styles.navButton}>Get Started Free</a>
           </nav>
