@@ -436,7 +436,7 @@ function OpportunityDetail({ opportunity, saved, onToggleSave, onAnalyze, aiAnal
   );
 }
 
-function AuthScreen({ mode, setMode, authForm, setAuthForm, onAuth, resetToken, onResetPassword, authBusy, verificationSent, setVerificationSent, verificationEmail }) {
+function AuthScreen({ mode, setMode, authForm, setAuthForm, onAuth, resetToken, onResetPassword, authBusy, verificationSent, setVerificationSent, verificationEmail, emailExists, setEmailExists }) {
   const [forgotEmail, setForgotEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
@@ -562,6 +562,23 @@ function AuthScreen({ mode, setMode, authForm, setAuthForm, onAuth, resetToken, 
             >
               {mode === 'login' ? 'Sign in' : 'Create account -- start free trial'}
             </button>
+
+            {emailExists && mode === 'register' && (
+              <div style={{
+                background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '8px',
+                padding: '0.75rem 1rem', fontSize: '0.85rem', color: '#dc2626', textAlign: 'center',
+              }}>
+                An account with this email already exists.{' '}
+                <button
+                  type="button"
+                  className="text-btn"
+                  style={{ color: '#2563eb', fontWeight: 600 }}
+                  onClick={() => { setEmailExists(false); setMode('login'); }}
+                >
+                  Sign in instead
+                </button>
+              </div>
+            )}
 
             <div className="row spread wrap">
               <button
@@ -809,6 +826,7 @@ export default function App() {
   const [perfDragOver, setPerfDragOver] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
+  const [emailExists, setEmailExists] = useState(false);
   const resetToken = new URLSearchParams(window.location.search).get('token');
   const upgraded = new URLSearchParams(window.location.search).get('upgraded');
 
@@ -1014,7 +1032,7 @@ export default function App() {
       }
     } catch (err) {
       if (err.message === 'Email already registered') {
-        setError('Account already exists -- try signing in.');
+        setEmailExists(true);
       } else {
         setError(err.message);
       }
@@ -1519,6 +1537,8 @@ export default function App() {
         verificationSent={verificationSent}
         setVerificationSent={setVerificationSent}
         verificationEmail={verificationEmail}
+        emailExists={emailExists}
+        setEmailExists={setEmailExists}
       />
     );
   }
@@ -1545,6 +1565,8 @@ export default function App() {
         verificationSent={verificationSent}
         setVerificationSent={setVerificationSent}
         verificationEmail={verificationEmail}
+        emailExists={emailExists}
+        setEmailExists={setEmailExists}
       />
     );
   }
