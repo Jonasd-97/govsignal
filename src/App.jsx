@@ -834,6 +834,7 @@ export default function App() {
   const [externalInputMode, setExternalInputMode] = useState('url'); // 'url' | 'text'
   const [externalAnalysis, setExternalAnalysis] = useState(null);
   const [externalBusy, setExternalBusy] = useState(false);
+  const [opportunityTab, setOpportunityTab] = useState('SAM'); // 'SAM' | 'USASPENDING'
   const resetToken = window.location.pathname.includes('reset-password')
     ? new URLSearchParams(window.location.search).get('token')
     : null;
@@ -937,6 +938,7 @@ export default function App() {
 
         opportunityParams.set('daysBack', String(filters.daysBack || 30));
         opportunityParams.set('limit', String(filters.limit || 50));
+        opportunityParams.set('source', opportunityTab);
 
         const [oppRes, watchRes, searchRes, perfRes, digestRes] = await Promise.all([
           api(`/api/opportunities?${opportunityParams.toString()}`),
@@ -980,7 +982,7 @@ export default function App() {
 
   useEffect(() => {
     if (token) loadAppData();
-  }, [token, filters]);
+  }, [token, filters, opportunityTab]);
 
   useEffect(() => {
     const onPop = () => {
@@ -1847,6 +1849,43 @@ export default function App() {
 
         {view === 'opportunities' && (
           <section className="page-grid">
+
+            {/* ── Source Tabs ── */}
+            <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '2px solid #e2e8f0', paddingBottom: '0' }}>
+              {[
+                { id: 'SAM', label: '🎯 Active Solicitations', hint: 'Open contracts you can bid on now' },
+                { id: 'USASPENDING', label: '🏆 Award Intel', hint: 'Past awards for competitor research' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => { setOpportunityTab(tab.id); setSelectedOpportunity(null); }}
+                  style={{
+                    padding: '0.6rem 1.25rem',
+                    borderRadius: '8px 8px 0 0',
+                    border: 'none',
+                    borderBottom: opportunityTab === tab.id ? '2px solid #2563eb' : '2px solid transparent',
+                    background: opportunityTab === tab.id ? '#eff6ff' : 'transparent',
+                    color: opportunityTab === tab.id ? '#2563eb' : '#64748b',
+                    fontWeight: opportunityTab === tab.id ? 700 : 500,
+                    fontSize: '0.88rem',
+                    cursor: 'pointer',
+                    marginBottom: '-2px',
+                  }}
+                >
+                  {tab.label}
+                  <div style={{ fontSize: '0.72rem', fontWeight: 400, color: opportunityTab === tab.id ? '#3b82f6' : '#94a3b8', marginTop: '1px' }}>{tab.hint}</div>
+                </button>
+              ))}
+            </div>
+
+            {/* Award Intel banner */}
+            {opportunityTab === 'USASPENDING' && (
+              <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '0.75rem 1rem', fontSize: '0.85rem', color: '#92400e', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>⚠️</span>
+                <span>These are <strong>past contract awards</strong> from USASpending.gov — useful for competitor research and understanding agency spending patterns. They are not active solicitations.</span>
+              </div>
+            )}
             <div className="card filter-card">
               <div className="filter-grid">
                 <Field label="Keyword">
