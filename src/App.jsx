@@ -829,6 +829,11 @@ export default function App() {
   const [verificationSent, setVerificationSent] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
   const [emailExists, setEmailExists] = useState(false);
+  const [externalAnalyzerOpen, setExternalAnalyzerOpen] = useState(false);
+  const [externalInput, setExternalInput] = useState('');
+  const [externalInputMode, setExternalInputMode] = useState('url'); // 'url' | 'text'
+  const [externalAnalysis, setExternalAnalysis] = useState(null);
+  const [externalBusy, setExternalBusy] = useState(false);
   const resetToken = window.location.pathname.includes('reset-password')
     ? new URLSearchParams(window.location.search).get('token')
     : null;
@@ -1431,6 +1436,37 @@ export default function App() {
     }
   }
 
+  async function analyzeExternal() {
+    if (!externalInput.trim()) return;
+    setExternalBusy(true);
+    setExternalAnalysis(null);
+    setError('');
+    try {
+      const isUrl = externalInputMode === 'url';
+      const result = await api('/api/ai/analyze-external', {
+        method: 'POST',
+        body: {
+          ...(isUrl ? { url: externalInput.trim() } : { text: externalInput.trim() }),
+          profile: {
+            companyName: user?.companyName,
+            naics: user?.naicsCode,
+            naicsLabel: NAICS_OPTIONS.find((o) => o.code === user?.naicsCode)?.label,
+            setAside: user?.setAside,
+            agency: user?.targetAgency,
+          },
+        },
+      });
+      setExternalAnalysis(result);
+    } catch (err) {
+      if (err.status === 429) { setAiLimitReached(true); return; }
+      if (err.status === 403) { navigate('pricing'); return; }
+      setError(err.message || 'Failed to analyze contract.');
+      clearFlash();
+    } finally {
+      setExternalBusy(false);
+    }
+  }
+
   async function analyzeDroppedProposal(file) {
     if (!file) return;
     const allowed = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
@@ -1922,6 +1958,138 @@ export default function App() {
             </div>
 
             <div className="split-layout wide">
+              {/* ── Analyze External Contract Panel ── */}
+              <div style={{ gridColumn: '1 / -1' }}>
+                <button
+                  type="button"
+                  onClick={() => { setExternalAnalyzerOpen((p) => !p); setExternalAnalysis(null); setExternalInput(''); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    background: 'none', border: '1.5px dashed #c7d2fe', borderRadius: '10px',
+                    padding: '0.65rem 1.1rem', cursor: 'pointer', width: '100%',
+                    color: '#4f46e5', fontWeight: 600, fontSize: '0.88rem',
+                    marginBottom: externalAnalyzerOpen ? '0' : '0.25rem',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <span style={{ fontSize: '1rem' }}>✦</span>
+                  Analyze a contract from outside HelixGov
+                  <span style={{ marginLeft: 'auto', fontSize: '0.75rem', opacity: 0.7 }}>{externalAnalyzerOpen ? '▲ Close' : '▼ Open'}</span>
+                </button>
+
+                {externalAnalyzerOpen && (
+                  <div className="card" style={{ borderTop: '3px solid #4f46e5', marginTop: '0', borderRadius: '0 0 12px 12px' }}>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <p style={{ margin: '0 0 0.75rem', fontSize: '0.88rem', color: '#475569' }}>
+                        Found a contract on SAM.gov or another source? Paste the URL or the solicitation text and get an instant AI bid analysis.
+                      </p>
+                      {user?.plan === 'FREE' && (
+                        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '0.65rem 1rem', fontSize: '0.82rem', color: '#1d4ed8', marginBottom: '0.75rem' }}>
+                          ✦ AI analysis requires a Pro or Agency plan.{' '}
+                          <button type="button" className="text-btn" style={{ color: '#2563eb', fontWeight: 600 }} onClick={() => navigate('pricing')}>Start free trial →</button>
+                        </div>
+                      )}
+
+                      {/* Tab switcher */}
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                        {['url', 'text'].map((mode) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            onClick={() => { setExternalInputMode(mode); setExternalInput(''); setExternalAnalysis(null); }}
+                            style={{
+                              padding: '0.35rem 1rem', borderRadius: '6px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                              background: externalInputMode === mode ? '#4f46e5' : '#f1f5f9',
+                              color: externalInputMode === mode ? '#fff' : '#475569',
+                              border: externalInputMode === mode ? '1.5px solid #4f46e5' : '1.5px solid #e2e8f0',
+                            }}
+                          >
+                            {mode === 'url' ? '🔗 Paste URL' : '📋 Paste Text'}
+                          </button>
+                        ))}
+                      </div>
+
+                      {externalInputMode === 'url' ? (
+                        <input
+                          type="url"
+                          value={externalInput}
+                          onChange={(e) => setExternalInput(e.target.value)}
+                          placeholder="https://sam.gov/opp/..."
+                          style={{ width: '100%', fontSize: '0.88rem' }}
+                        />
+                      ) : (
+                        <textarea
+                          value={externalInput}
+                          onChange={(e) => setExternalInput(e.target.value)}
+                          placeholder="Paste the full solicitation description, Statement of Work, or any contract text here..."
+                          rows={6}
+                          style={{ width: '100%', fontSize: '0.85rem', resize: 'vertical', fontFamily: 'inherit', padding: '0.6rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px', lineHeight: 1.5 }}
+                        />
+                      )}
+
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ marginTop: '0.75rem', background: '#4f46e5' }}
+                        onClick={analyzeExternal}
+                        disabled={externalBusy || !externalInput.trim() || user?.plan === 'FREE'}
+                      >
+                        {externalBusy ? 'Analyzing...' : '✦ Run AI Analysis'}
+                      </button>
+                    </div>
+
+                    {/* Results */}
+                    {externalAnalysis && (
+                      <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1.25rem', marginTop: '0.5rem' }}>
+                        {/* Extracted fields */}
+                        {externalAnalysis.extractedFields && (
+                          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '0.85rem 1rem', marginBottom: '1rem', fontSize: '0.82rem', color: '#475569' }}>
+                            <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '0.4rem', fontSize: '0.88rem' }}>{externalAnalysis.extractedFields.title || 'External Contract'}</div>
+                            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                              {externalAnalysis.extractedFields.agency && <span>🏛 {externalAnalysis.extractedFields.agency}</span>}
+                              {externalAnalysis.extractedFields.naicsCode && <span>📋 NAICS {externalAnalysis.extractedFields.naicsCode}</span>}
+                              {externalAnalysis.extractedFields.setAside && <span>🏷 {externalAnalysis.extractedFields.setAside}</span>}
+                              {externalAnalysis.extractedFields.responseDeadline && <span>⏰ Due {externalAnalysis.extractedFields.responseDeadline}</span>}
+                              {externalAnalysis.extractedFields.estimatedValue && <span>💰 ${Number(externalAnalysis.extractedFields.estimatedValue).toLocaleString()}</span>}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Verdict + win probability */}
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                          <Badge tone={externalAnalysis.verdict === 'Strong Fit' ? 'success' : externalAnalysis.verdict === 'Potential Fit' ? 'warning' : 'danger'}>
+                            {externalAnalysis.verdict}
+                          </Badge>
+                          <Badge>{externalAnalysis.win_probability}% win probability</Badge>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', margin: '0 0 0.75rem', color: '#0f172a' }}>{externalAnalysis.verdict_reason}</p>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                          <div style={{ background: '#f0fdf4', border: '0.5px solid #86efac', borderRadius: '8px', padding: '0.75rem' }}>
+                            <div style={{ fontSize: '0.72rem', fontWeight: 500, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.4rem' }}>Strengths</div>
+                            <ul style={{ margin: 0, paddingLeft: '1rem' }}>{(externalAnalysis.strengths || []).map((item) => <li key={item} style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>{item}</li>)}</ul>
+                          </div>
+                          <div style={{ background: '#fef2f2', border: '0.5px solid #fca5a5', borderRadius: '8px', padding: '0.75rem' }}>
+                            <div style={{ fontSize: '0.72rem', fontWeight: 500, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.4rem' }}>Risks</div>
+                            <ul style={{ margin: 0, paddingLeft: '1rem' }}>{(externalAnalysis.risks || []).map((item) => <li key={item} style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>{item}</li>)}</ul>
+                          </div>
+                        </div>
+
+                        <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '0.75rem' }}>
+                          <div style={{ fontSize: '0.72rem', fontWeight: 500, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.4rem' }}>Next Steps</div>
+                          <ul style={{ margin: 0, paddingLeft: '1rem' }}>{(externalAnalysis.next_steps || []).map((item) => <li key={item} style={{ fontSize: '0.8rem', marginBottom: '0.2rem' }}>{item}</li>)}</ul>
+                        </div>
+
+                        {externalAnalysis.teaming_suggestion && (
+                          <div style={{ marginTop: '0.75rem', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '0.75rem', fontSize: '0.82rem', color: '#1d4ed8' }}>
+                            <strong>Teaming:</strong> {externalAnalysis.teaming_suggestion}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <div className="list-stack">
                 {opportunities.map((item) => (
                   <OpportunityCard
