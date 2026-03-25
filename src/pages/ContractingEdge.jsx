@@ -292,32 +292,19 @@ export default function ContractingEdge() {
               </p>
             </section>
 
-            {/* Featured article */}
-            <section style={s.featured} onClick={() => setActiveSlug(ARTICLES[0].slug)}>
-              <div style={s.featuredContent}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <span style={{ ...s.categoryPill, backgroundColor: CATEGORY_COLORS[ARTICLES[0].category]?.bg, color: CATEGORY_COLORS[ARTICLES[0].category]?.color, border: `1px solid ${CATEGORY_COLORS[ARTICLES[0].category]?.border}` }}>
-                    {ARTICLES[0].category}
-                  </span>
-                </div>
-                <h2 style={s.featuredTitle}>{ARTICLES[0].title}</h2>
-                <p style={s.featuredExcerpt}>{ARTICLES[0].excerpt}</p>
-                <div style={s.featuredMeta}>
-                  <span>{ARTICLES[0].date}</span>
-                  <span style={{ color: '#cbd5e1' }}>·</span>
-                  <span>{ARTICLES[0].readTime}</span>
-                </div>
-                <button type="button" style={s.readMore}>Read article →</button>
-              </div>
-            </section>
-
-            {/* Article grid */}
+            {/* Symmetric 3x2 article grid */}
             <section style={s.grid}>
-              {ARTICLES.slice(1).map((article) => {
+              {ARTICLES.map((article) => {
                 const cat = CATEGORY_COLORS[article.category] || {};
                 return (
-                  <div key={article.slug} style={s.card} onClick={() => setActiveSlug(article.slug)}>
-                    <div style={{ marginBottom: '0.75rem' }}>
+                  <div
+                    key={article.slug}
+                    style={s.card}
+                    onClick={() => setActiveSlug(article.slug)}
+                    onMouseEnter={e => e.currentTarget.style.boxShadow = '0 20px 48px rgba(15,23,42,0.10)'}
+                    onMouseLeave={e => e.currentTarget.style.boxShadow = '0 8px 24px rgba(15,23,42,0.05)'}
+                  >
+                    <div style={{ marginBottom: '0.85rem' }}>
                       <span style={{ ...s.categoryPill, backgroundColor: cat.bg, color: cat.color, border: `1px solid ${cat.border}` }}>
                         {article.category}
                       </span>
@@ -325,7 +312,7 @@ export default function ContractingEdge() {
                     <h3 style={s.cardTitle}>{article.title}</h3>
                     <p style={s.cardExcerpt}>{article.excerpt}</p>
                     <div style={s.cardFooter}>
-                      <span style={s.cardMeta}>{article.readTime}</span>
+                      <span style={s.cardMeta}>{article.date} · {article.readTime}</span>
                       <span style={s.cardReadMore}>Read →</span>
                     </div>
                   </div>
@@ -395,19 +382,20 @@ const s = {
     background: '#2563EB', color: '#FFFFFF', fontWeight: 700, fontSize: '14px',
     border: 'none', cursor: 'pointer', boxShadow: '0 6px 16px rgba(37,99,235,0.18)',
   },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px', marginBottom: '64px' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '64px' },
   card: {
     background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px',
-    padding: '28px 24px', cursor: 'pointer', display: 'flex', flexDirection: 'column',
-    boxShadow: '0 8px 24px rgba(15,23,42,0.04)', transition: 'box-shadow 0.2s',
+    padding: '32px 28px', cursor: 'pointer', display: 'flex', flexDirection: 'column',
+    boxShadow: '0 8px 24px rgba(15,23,42,0.05)', transition: 'box-shadow 0.2s',
+    minHeight: '260px',
   },
   categoryPill: {
     display: 'inline-flex', alignItems: 'center', padding: '4px 12px',
     borderRadius: '999px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em',
   },
-  cardTitle: { margin: '0 0 10px', fontSize: '17px', fontWeight: 700, color: '#0F172A', lineHeight: 1.35 },
-  cardExcerpt: { margin: '0 0 auto', fontSize: '14px', lineHeight: 1.7, color: '#64748B', paddingBottom: '16px' },
-  cardFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid #f1f5f9' },
+  cardTitle: { margin: '0 0 12px', fontSize: '18px', fontWeight: 700, color: '#0F172A', lineHeight: 1.35 },
+  cardExcerpt: { margin: '0 0 auto', fontSize: '14px', lineHeight: 1.75, color: '#64748B', paddingBottom: '20px', flex: 1 },
+  cardFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid #f1f5f9', marginTop: 'auto' },
   cardMeta: { fontSize: '12px', color: '#94A3B8', fontWeight: 500 },
   cardReadMore: { fontSize: '13px', color: '#2563EB', fontWeight: 700 },
   bottomCta: {
