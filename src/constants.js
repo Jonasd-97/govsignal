@@ -102,7 +102,7 @@ export const PLAN_CARDS = [
       'Proposal drafting and scoring',
       'Document drop and capability profiling',
       'Daily email digest',
-      'Best for 1-3 person BD teams',
+      'Best for solo contractors and small BD teams',
     ],
   },
   {
