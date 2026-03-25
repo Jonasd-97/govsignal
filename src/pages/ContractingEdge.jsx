@@ -198,6 +198,86 @@ A BD pipeline is only as useful as the data it contains. Track every opportunity
 
 These metrics will tell you where your pipeline is healthy and where it is broken. They will also tell you which opportunities you should stop pursuing — and that information is just as valuable as knowing where to focus.`,
   },
+  {
+    slug: 'how-to-write-winning-capability-statement',
+    title: 'How to Write a Capability Statement That Actually Wins Business',
+    excerpt: 'A capability statement is the single most important BD document a federal contractor can have. Most are generic and forgettable. Here is how to write one that opens doors.',
+    category: 'Proposals',
+    readTime: '6 min read',
+    date: 'March 25, 2026',
+    body: `A capability statement is the single most important BD document a federal contractor can have. It is the first thing a contracting officer sees when you introduce your company — and most of them are generic, forgettable, and immediately discarded.
+
+Here is how to write one that actually opens doors.
+
+## What a capability statement is — and is not
+
+A capability statement is not a brochure. It is not a list of services you offer. It is a targeted, one-page document that answers three questions for a specific buyer: What can you do? Who have you done it for? Why should we trust you?
+
+The operative word is targeted. A capability statement written for the Department of Defense should look and read differently than one written for the Department of Health and Human Services. If yours works for every agency equally, it is probably not working for any of them well.
+
+## Core competencies: be specific
+
+The most common mistake in capability statements is leading with generic descriptions. "We provide high-quality IT services" tells a contracting officer nothing. "We deliver DevSecOps implementations and cloud migrations for civilian agency environments, with a focus on AWS GovCloud and FedRAMP compliance" tells them exactly who you are.
+
+Your core competencies section should include three to five specific capability statements that match the NAICS codes you pursue. Each one should be a complete sentence that names a technology, methodology, or domain — not a category.
+
+## Past performance: show outcomes, not activities
+
+The past performance section is where most capability statements lose the reader. Listing contract names and dollar values without context is a missed opportunity.
+
+Instead, structure each past performance entry around a result. Name the agency, describe the challenge, quantify the outcome. A contractor who reduced system downtime by 40% on a $2.3M VA contract is more compelling than one who "provided IT support services."
+
+Aim for three to five entries, all within the past five years, all directly relevant to the work you are pursuing.
+
+## Differentiators: say something no one else can say
+
+The differentiators section is your chance to answer the question every contracting officer is silently asking: why you and not the other twelve companies on this list?
+
+Avoid clichés like "our people are our greatest asset" or "we are committed to excellence." Instead, name something specific and verifiable. A proprietary methodology. A clearance level your competitors do not have. A teaming relationship with a specific large prime. An agency-specific past performance record that no one else can match.
+
+If you cannot articulate a genuine differentiator, that is important information. It means you need to either develop one or shift your targeting to opportunities where your existing strengths are more distinctive.
+
+## Format and presentation
+
+A capability statement should fit on one page. It should include your logo, CAGE code, DUNS/UEI number, NAICS codes, set-aside certifications, and contact information. It should be a PDF that can be emailed, printed, and handed to someone at an industry day without embarrassment.
+
+Update it every six months. An outdated capability statement with expired certifications or stale past performance is worse than no capability statement at all.`,
+  },
+
+A pipeline is not a spreadsheet of open solicitations. It is a systematic process for identifying, qualifying, and pursuing opportunities before they become competitive procurements. Here is how to build one.
+
+## Start with agency targeting
+
+Federal contracting success is almost always agency-specific. The contracting culture, preferred vendors, procurement patterns, and buying cycles vary significantly from one agency to the next. Trying to pursue every agency simultaneously produces mediocre results everywhere.
+
+Choose two or three agencies that align with your core capabilities and set-aside status. Research their annual procurement forecasts, which are published by most major agencies in the fall. Identify the program offices that buy what you sell. Learn the names of the contracting officers and program managers responsible for relevant procurement.
+
+Depth beats breadth in the early stages of building a federal contracting business.
+
+## Build a 12-month opportunity calendar
+
+Once you have identified your target agencies, map out their known procurement activity over the next 12 months. Sources sought notices, industry days, anticipated solicitations, and contract expiration dates are all signals.
+
+USASpending.gov will tell you when existing contracts are set to expire. Contracts approaching their period of performance end date are procurement opportunities in the making. Position yourself six to twelve months before expiration.
+
+## Respond to every sources sought
+
+Sources sought notices are market research tools that contracting officers use before writing a solicitation. They are not competitions — there are no winners or losers. But they are your best opportunity to shape the requirements before they are locked into an RFP.
+
+A well-written sources sought response demonstrates capability, establishes your presence in the agency's awareness, and sometimes directly influences whether a solicitation is set aside for a specific business category. There is almost no downside to responding.
+
+## Build teaming relationships before you need them
+
+Many federal opportunities require capabilities or past performance that a single small contractor cannot demonstrate alone. Teaming arrangements — where two or more contractors partner to pursue an opportunity — are the standard solution.
+
+Build your teaming network before a specific opportunity demands it. Identify complementary contractors in your NAICS space who serve the same agencies. Establish teaming agreement templates in advance. When the right opportunity appears, you will be ready to move quickly.
+
+## Track everything, measure what matters
+
+A BD pipeline is only as useful as the data it contains. Track every opportunity from identification through award. Measure your bid-to-win ratio, your average proposal cycle time, your win rate by agency, and your win rate by opportunity size.
+
+These metrics will tell you where your pipeline is healthy and where it is broken. They will also tell you which opportunities you should stop pursuing — and that information is just as valuable as knowing where to focus.`,
+  },
 ];
 
 const CATEGORY_COLORS = {
