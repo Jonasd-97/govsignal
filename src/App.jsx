@@ -36,7 +36,7 @@ const NAV_ITEMS = [
   ['settings', 'Settings'],
 ];
 
-const PUBLIC_VIEWS = new Set(['home', 'about', 'auth']);
+const PUBLIC_VIEWS = new Set(['home', 'about', 'auth', 'contracting-edge']);
 
 const VIEW_LABELS = {
   home: 'Home',
@@ -889,6 +889,7 @@ export default function App() {
 
     let nextPath = '/';
     if (nextView === 'about') nextPath = '/about';
+    if (nextView === 'contracting-edge') nextPath = '/contracting-edge';
     else if (nextView === 'auth') nextPath = authMode === 'register' ? '/register' : '/login';
     else if (nextView !== 'home') nextPath = `/${nextView}`;
 
