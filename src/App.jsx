@@ -829,7 +829,9 @@ export default function App() {
   const [verificationSent, setVerificationSent] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
   const [emailExists, setEmailExists] = useState(false);
-  const resetToken = new URLSearchParams(window.location.search).get('token');
+  const resetToken = window.location.pathname.includes('reset-password')
+    ? new URLSearchParams(window.location.search).get('token')
+    : null;
   const upgraded = new URLSearchParams(window.location.search).get('upgraded');
 
   const currentProfile = useMemo(
