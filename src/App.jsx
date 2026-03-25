@@ -1287,6 +1287,8 @@ export default function App() {
       clearFlash();
     }
   }
+
+  async function generateProposal() {
     if (!selectedOpportunity) {
       setError('Select an opportunity first.');
       clearFlash();
