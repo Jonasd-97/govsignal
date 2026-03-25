@@ -68,6 +68,8 @@ function parseInitialView() {
   if (!path) return 'home';
   if (path === 'about') return 'about';
   if (path === 'login' || path === 'register' || path === 'auth' || path === 'reset-password') return 'auth';
+  if (path === 'verify-success') return 'verify-success';
+  if (path === 'verify-error') return 'verify-error';
   if (NAV_ITEMS.some(([key]) => key === path)) return path;
 
   return 'home';
@@ -1570,6 +1572,53 @@ export default function App() {
         emailExists={emailExists}
         setEmailExists={setEmailExists}
       />
+    );
+  }
+
+  if (view === 'verify-success') {
+    const params = new URLSearchParams(window.location.search);
+    const verifyToken = params.get('token');
+    if (verifyToken && !token) {
+      tokenStore.set(verifyToken);
+      setToken(verifyToken);
+      loadSession(verifyToken).then(() => {
+        window.history.replaceState({}, '', '/dashboard');
+        setView('dashboard');
+      });
+    }
+    return (
+      <div className="auth-shell">
+        <div className="auth-card card" style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>✅</div>
+          <div className="brand-mark">Helix<span style={{color:'#2563EB'}}>Gov</span></div>
+          <h1 style={{ fontSize: '1.3rem', marginTop: '0.75rem' }}>Email verified!</h1>
+          <p className="muted">Your account is active. Taking you to your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'verify-error') {
+    const params = new URLSearchParams(window.location.search);
+    const reason = params.get('reason');
+    const messages = {
+      invalid: 'This verification link is invalid.',
+      used: 'This verification link has already been used.',
+      expired: 'This verification link has expired.',
+      server: 'Something went wrong. Please try again.',
+    };
+    return (
+      <div className="auth-shell">
+        <div className="auth-card card" style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>❌</div>
+          <div className="brand-mark">Helix<span style={{color:'#2563EB'}}>Gov</span></div>
+          <h1 style={{ fontSize: '1.3rem', marginTop: '0.75rem' }}>Verification failed</h1>
+          <p className="muted">{messages[reason] || 'This verification link is invalid.'}</p>
+          <button type="button" className="primary-btn" style={{ marginTop: '1rem' }} onClick={() => { setAuthMode('register'); setView('auth'); }}>
+            Back to sign up
+          </button>
+        </div>
+      </div>
     );
   }
 
