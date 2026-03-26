@@ -243,41 +243,6 @@ A capability statement should fit on one page. It should include your logo, CAGE
 
 Update it every six months. An outdated capability statement with expired certifications or stale past performance is worse than no capability statement at all.`,
   },
-
-A pipeline is not a spreadsheet of open solicitations. It is a systematic process for identifying, qualifying, and pursuing opportunities before they become competitive procurements. Here is how to build one.
-
-## Start with agency targeting
-
-Federal contracting success is almost always agency-specific. The contracting culture, preferred vendors, procurement patterns, and buying cycles vary significantly from one agency to the next. Trying to pursue every agency simultaneously produces mediocre results everywhere.
-
-Choose two or three agencies that align with your core capabilities and set-aside status. Research their annual procurement forecasts, which are published by most major agencies in the fall. Identify the program offices that buy what you sell. Learn the names of the contracting officers and program managers responsible for relevant procurement.
-
-Depth beats breadth in the early stages of building a federal contracting business.
-
-## Build a 12-month opportunity calendar
-
-Once you have identified your target agencies, map out their known procurement activity over the next 12 months. Sources sought notices, industry days, anticipated solicitations, and contract expiration dates are all signals.
-
-USASpending.gov will tell you when existing contracts are set to expire. Contracts approaching their period of performance end date are procurement opportunities in the making. Position yourself six to twelve months before expiration.
-
-## Respond to every sources sought
-
-Sources sought notices are market research tools that contracting officers use before writing a solicitation. They are not competitions — there are no winners or losers. But they are your best opportunity to shape the requirements before they are locked into an RFP.
-
-A well-written sources sought response demonstrates capability, establishes your presence in the agency's awareness, and sometimes directly influences whether a solicitation is set aside for a specific business category. There is almost no downside to responding.
-
-## Build teaming relationships before you need them
-
-Many federal opportunities require capabilities or past performance that a single small contractor cannot demonstrate alone. Teaming arrangements — where two or more contractors partner to pursue an opportunity — are the standard solution.
-
-Build your teaming network before a specific opportunity demands it. Identify complementary contractors in your NAICS space who serve the same agencies. Establish teaming agreement templates in advance. When the right opportunity appears, you will be ready to move quickly.
-
-## Track everything, measure what matters
-
-A BD pipeline is only as useful as the data it contains. Track every opportunity from identification through award. Measure your bid-to-win ratio, your average proposal cycle time, your win rate by agency, and your win rate by opportunity size.
-
-These metrics will tell you where your pipeline is healthy and where it is broken. They will also tell you which opportunities you should stop pursuing — and that information is just as valuable as knowing where to focus.`,
-  },
 ];
 
 const CATEGORY_COLORS = {
